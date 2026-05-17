@@ -2,7 +2,7 @@
   "name": "CognixAI Labs - LinkedIn Relationship Intelligence (Gemini)",
   "nodes": [
     {
-      "id": "4d499764-b8a6-4fef-86d4-7bb94a1a525c",
+      "id": "372db841-f55d-4ef7-bc2f-22dc20817937",
       "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -13,7 +13,7 @@
       "parameters": {}
     },
     {
-      "id": "3edc78a3-981e-42cc-98ab-914bfa1081c6",
+      "id": "c1f79f58-2f3a-4685-a1e7-69a295e57dee",
       "name": "Schedule - Discovery",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -33,7 +33,7 @@
       }
     },
     {
-      "id": "0dd44b54-c25d-49f8-8e7c-a66a36d9b6b4",
+      "id": "3b3bb165-4fd5-4b15-a5ed-5b1a9eca1553",
       "name": "Schedule - LinkedIn Engagement",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -54,7 +54,7 @@
       "notes": "Runs twice daily for human-paced LinkedIn stages (view → connect → message)."
     },
     {
-      "id": "3c440941-c8de-4074-b4c5-05bb9299754f",
+      "id": "3cee1df4-eb1e-480d-970d-1adc39cd61e9",
       "name": "Merge Triggers",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
@@ -68,7 +68,7 @@
       }
     },
     {
-      "id": "a2caf9cf-d3a6-4adf-b49c-7f3f9c2f7b99",
+      "id": "7f852642-74f5-475f-bd4a-f72a1cd5c758",
       "name": "Workflow Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -82,97 +82,97 @@
         "assignments": {
           "assignments": [
             {
-              "id": "ef3be67d-ccac-48ca-9f75-a7c238a03fa4",
+              "id": "dc4f3b6a-88fc-4449-a17e-4a341989ad1e",
               "name": "runMode",
               "value": "full",
               "type": "string"
             },
             {
-              "id": "ed6b627a-ca30-45f9-96cc-06c3da5bbe43",
+              "id": "0c2f91e5-b48a-4e67-bb7d-a63b66179efd",
               "name": "spreadsheetId",
               "value": "={{ $env.COGNIX_LEADS_SHEET_ID || '' }}",
               "type": "string"
             },
             {
-              "id": "996aa06f-b9c4-489d-a8ee-3a4f36484df7",
+              "id": "b1f9656a-5bed-4bb7-96f8-ae72ac4f5a4e",
               "name": "sheetName",
               "value": "Leads",
               "type": "string"
             },
             {
-              "id": "9115545d-8bc0-49eb-834c-81f1bba6ff3e",
+              "id": "7b10822b-1fc6-48e3-8ac1-a4fa40e547c0",
               "name": "serperQueries",
               "value": "=[\"AI SaaS company site:linkedin.com/company\",\"B2B SaaS startup founder site:linkedin.com/in\",\"recruitment agency workflow automation\",\"agency scaling operations team\",\"workflow-heavy SaaS company careers\"]",
               "type": "array"
             },
             {
-              "id": "5db42b5f-8b6d-4d1a-a558-686fc8c1a9dc",
+              "id": "2049ff6e-b2e1-4ae9-b768-6cc87f780b18",
               "name": "discoveryBatchSize",
               "value": 5,
               "type": "number"
             },
             {
-              "id": "eeb230d3-5b6e-4e17-a30c-fad176077aaf",
+              "id": "c44e3418-5ebf-4d52-b5c3-d543d1dd98ab",
               "name": "scrapeBatchSize",
               "value": 2,
               "type": "number"
             },
             {
-              "id": "def99d82-df67-453b-88fa-0dded7c68b67",
+              "id": "6103db17-f2a3-4976-bc71-901fe529a906",
               "name": "engagementBatchSize",
               "value": 3,
               "type": "number"
             },
             {
-              "id": "89d0f905-9605-4fc7-9ef0-cbe01388d978",
+              "id": "bc24439a-dd27-4f35-85b1-3da400bf9041",
               "name": "serperWaitMs",
               "value": 2000,
               "type": "number"
             },
             {
-              "id": "aa670875-ffdd-4a5c-b8cb-19b99d4c5b27",
+              "id": "57dd1d43-a8aa-4f0b-882a-7bd8992a161c",
               "name": "firecrawlWaitMs",
               "value": 3000,
               "type": "number"
             },
             {
-              "id": "3e873d4e-e3ee-4457-907e-4791dec9399e",
+              "id": "ee03b797-5a92-4453-a7c2-7e20046f3cd1",
               "name": "geminiWaitMs",
               "value": 1200,
               "type": "number"
             },
             {
-              "id": "644479e4-787f-4fbf-954e-d806a6582130",
+              "id": "73d61a71-9769-4b15-a95e-71687b756fe3",
               "name": "maxScrapeChars",
               "value": 8000,
               "type": "number"
             },
             {
-              "id": "dbdf4ddc-b7d2-43ec-83f6-9bc1e7932616",
+              "id": "8ab66415-4bb6-49d7-820a-735386fbba26",
               "name": "maxProfileViewsPerDay",
               "value": 40,
               "type": "number"
             },
             {
-              "id": "efbc48da-b7da-4733-bdb6-35403ae73874",
+              "id": "33955a30-9fb6-43c4-9dfd-a4f7efa5b37c",
               "name": "maxConnectionsPerDay",
               "value": 20,
               "type": "number"
             },
             {
-              "id": "5db4f916-d653-4128-a6d2-be7a3664f3f0",
+              "id": "183f849b-07b5-402c-8621-4fb4cf08cbbe",
               "name": "connectionWaitHours",
               "value": 2,
               "type": "number"
             },
             {
-              "id": "3edfbf5f-58f9-4fc6-995f-71a0b8f997b9",
+              "id": "932d6326-5fda-49e0-9bb6-54549d13ea37",
               "name": "messageWaitDays",
               "value": 2,
               "type": "number"
             },
             {
-              "id": "5ab6f13f-674b-4084-8748-05667f5f7322",
+              "id": "c39180e9-e55c-4590-9161-5cba570beec4",
               "name": "brandName",
               "value": "CognixAI Labs",
               "type": "string"
@@ -184,7 +184,7 @@
       "notes": "Env: GEMINI_API_KEY, SERPER_API_KEY, FIRECRAWL_API_KEY, COGNIX_LEADS_SHEET_ID. Optional: APIFY_API_TOKEN, COGNIX_PLAYWRIGHT_WEBHOOK_URL, COGNIX_ERROR_WEBHOOK_URL. No email vars."
     },
     {
-      "id": "f3f8f42a-1c96-4d44-977a-66976fd9d1ec",
+      "id": "12c77195-06a4-47ac-861a-7bcf507f80ba",
       "name": "Detect Run Mode",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -198,7 +198,7 @@
       }
     },
     {
-      "id": "84233dc6-97d0-47e4-b302-e19c73aa45e1",
+      "id": "21e53e55-578b-4411-8cce-15f1079b863b",
       "name": "Route Run Mode",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
@@ -263,7 +263,7 @@
       }
     },
     {
-      "id": "7ca2314a-2789-48aa-a66a-ff48d0cc8eba",
+      "id": "50b89bcb-abce-4733-a3bb-b65d47e8f861",
       "name": "Read Existing Leads",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -290,7 +290,7 @@
       }
     },
     {
-      "id": "bebf0b52-e887-4ca6-82b5-a30c06c86902",
+      "id": "3a13bf46-b9f0-4d58-8d3a-fd2c9343d2dc",
       "name": "Build Dedup Index",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -304,7 +304,7 @@
       }
     },
     {
-      "id": "fea4469b-aad2-4b9d-91c3-8a74409a84d7",
+      "id": "8d96f1e9-3a15-4300-a085-f4b288620d5f",
       "name": "Build Discovery Queries",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -318,7 +318,7 @@
       }
     },
     {
-      "id": "bce111ba-eb2f-4cfa-8919-97204ee55ab3",
+      "id": "10364053-b809-49c6-bba1-6da7cda2cd51",
       "name": "Split Discovery Batches",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -334,7 +334,7 @@
       }
     },
     {
-      "id": "0b2bf63d-d1d6-47b2-bc24-b06b150b1e95",
+      "id": "cc3fc6ee-9989-4898-a336-76b69f23d104",
       "name": "Serper Search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -373,7 +373,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "67c397b5-8e19-4727-9e5e-119a14915a13",
+      "id": "0ed1b3bc-679a-4591-b603-55ef2a265b28",
       "name": "Wait Serper Rate Limit",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -388,7 +388,7 @@
       }
     },
     {
-      "id": "401e600e-bc91-43b6-ba53-5b2120de9933",
+      "id": "c2b9b07f-e740-41d0-b0b8-bc4dc25d8bb7",
       "name": "Parse Serper Results",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -402,7 +402,7 @@
       }
     },
     {
-      "id": "5a81a398-759c-4794-b776-6de8b8d3f7b0",
+      "id": "b872013e-2a08-4d64-8c4a-2f4dcc7a7276",
       "name": "IF More Serper Pages",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -432,7 +432,7 @@
       }
     },
     {
-      "id": "e5c28191-85e1-4d19-b8b8-162637158d03",
+      "id": "3efdb554-baf0-44c1-957f-1c25c038ff9b",
       "name": "Increment Serper Page",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -445,7 +445,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "4034e458-309f-42b1-8c51-215a2c5c59a8",
+              "id": "20a59895-a56b-48e4-8780-766716b713d5",
               "name": "page",
               "value": "={{ $(\"Split Discovery Batches\").first().json.page + 1 }}",
               "type": "number"
@@ -456,7 +456,7 @@
       }
     },
     {
-      "id": "0578ee0a-9410-41d1-9206-655c41bee0ea",
+      "id": "05eb999c-9889-4c8d-957d-235d52b8ab0e",
       "name": "Dedupe Companies",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -470,7 +470,7 @@
       }
     },
     {
-      "id": "7dbd6b4e-a423-4f43-a80b-a3bb9dbf6aa5",
+      "id": "2bde7319-af7d-4332-aa36-edf4e62f43ff",
       "name": "IF Has New Companies",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -500,7 +500,7 @@
       }
     },
     {
-      "id": "d8648be6-cb01-47b2-98a8-821dd5b7f7a2",
+      "id": "6bec4d07-905b-474c-9333-218c457c6147",
       "name": "IF Apify Enabled",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -530,7 +530,7 @@
       }
     },
     {
-      "id": "4d7f622c-8c20-4975-936e-bfa7af086046",
+      "id": "370523a4-bfed-4fdc-95bc-8b76b541aeea",
       "name": "Apify Optional Enrich",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -569,7 +569,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "1d9b7fba-5f76-446c-a2a6-76382a3cac78",
+      "id": "0f28b6b8-71ba-479c-ae45-9062f43e10a5",
       "name": "Skip Apify Pass-through",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -583,7 +583,7 @@
       }
     },
     {
-      "id": "cd0a427f-cfca-461c-b1fe-2fb879e4720e",
+      "id": "3e2ebf39-62ce-4e73-a137-91fcf7fdd36f",
       "name": "Merge Apify Enrichment",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -597,7 +597,7 @@
       }
     },
     {
-      "id": "3c8b60b4-8f96-4deb-8904-fdf2b0520085",
+      "id": "2586cfe0-cb89-45fd-b599-1f2817d0c76a",
       "name": "Merge Apify Skip",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -611,7 +611,7 @@
       }
     },
     {
-      "id": "5209f817-8c24-459e-a846-1925e1b1d607",
+      "id": "65a18070-3d79-47e6-b6f2-ba50f4ae23ea",
       "name": "Merge Enrich Paths",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
@@ -625,7 +625,7 @@
       }
     },
     {
-      "id": "c87e070e-5208-43ce-837a-7b753a4fde4b",
+      "id": "6082a6c5-fb00-4d13-83c9-860f3fb46af4",
       "name": "Split Scrape Batches",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -641,7 +641,7 @@
       }
     },
     {
-      "id": "ad055590-7dac-4951-999d-c34a952784a9",
+      "id": "7ab7f088-2bfb-41a3-9993-1ead004c0329",
       "name": "Attach Lead Context",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -655,7 +655,7 @@
       }
     },
     {
-      "id": "c79a820e-dca4-4696-849b-7a60413912c0",
+      "id": "0b7879af-caee-4abe-bf01-5b663fa60949",
       "name": "Firecrawl Homepage",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -694,7 +694,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "1d2c5a16-eb08-415d-b27d-1305ef363e70",
+      "id": "e39c9320-a20f-4a18-8e8f-d8f6ec3e5dd9",
       "name": "Wait Firecrawl Rate Limit",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -709,7 +709,7 @@
       }
     },
     {
-      "id": "2e04f731-f8cb-4ea9-b4be-367b99c6d3b6",
+      "id": "a5a7f636-bc11-40d8-bef5-a7960eddd936",
       "name": "Firecrawl About",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -748,7 +748,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "95b84c9e-c736-4afa-b5c8-8fee3a0f8a3e",
+      "id": "9656f041-8eb2-4f3e-a094-8dd5636c00f4",
       "name": "Extract Scrape Signals",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -762,7 +762,7 @@
       }
     },
     {
-      "id": "a1938c2a-7dd6-4fe0-9067-557d074bada3",
+      "id": "d217bf84-ffa2-4bcd-bf90-27e67d266d37",
       "name": "Wait Gemini Rate Limit",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -777,7 +777,7 @@
       }
     },
     {
-      "id": "7412b03e-78ca-4a92-85be-90436e03c0e3",
+      "id": "f6196124-f4b3-4985-95b3-690cd4c708e0",
       "name": "Gemini Company Analysis",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -812,7 +812,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "0d202959-093e-4036-9a2c-858063cc3dae",
+      "id": "652b794c-0e60-4553-8be3-af56f2510bfa",
       "name": "IF Gemini Analysis OK",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -842,7 +842,7 @@
       }
     },
     {
-      "id": "a84ef59e-b467-41bd-8422-d53531e30244",
+      "id": "2fbc4500-1b33-4558-8239-8810eeac1df2",
       "name": "Parse AI Analysis JSON",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -856,7 +856,7 @@
       }
     },
     {
-      "id": "084869d6-2eff-47fa-9868-23536e4b84a9",
+      "id": "cdf8baf5-aa23-4f34-9042-ea51ccacea4d",
       "name": "Handle Gemini Analysis Error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -870,7 +870,7 @@
       }
     },
     {
-      "id": "1e0eacce-5a53-452a-8068-cf924c1a859a",
+      "id": "26a079e3-51df-41a6-943b-4b91c50f261a",
       "name": "ICP Weighted Scoring",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -884,7 +884,7 @@
       }
     },
     {
-      "id": "b502b33d-65c1-4b48-896d-dad7ea891e6f",
+      "id": "5a6e45f2-abc4-4b69-b5ad-b0d965b6edda",
       "name": "Route ICP Priority",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
@@ -949,7 +949,7 @@
       }
     },
     {
-      "id": "9b3d8108-c27c-4084-b497-e780543f3cae",
+      "id": "498cd8e9-7153-4986-b33d-190276dd9c38",
       "name": "Serper Find LinkedIn",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -988,7 +988,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "99a2f5ae-512a-4ef8-b48b-1423916da591",
+      "id": "348362b6-3baa-40a8-8d5b-1178bffb801b",
       "name": "Parse LinkedIn Serper",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1002,7 +1002,7 @@
       }
     },
     {
-      "id": "823c5428-ccc8-44b8-9f1a-b6fdb100c82b",
+      "id": "03abc1b9-19c9-4b05-bf25-c90532136446",
       "name": "Wait Gemini LinkedIn",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -1017,7 +1017,7 @@
       }
     },
     {
-      "id": "978d529e-923f-4da2-8706-9eeb41bf9a78",
+      "id": "68d93388-eff4-457f-b45e-b645f2041c55",
       "name": "Gemini Founder Resolve",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1052,7 +1052,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "2bac3d1a-f08c-4d3a-adf8-1b50b3511db5",
+      "id": "408f8c01-a94f-4a3e-82a2-49d89b7e3c58",
       "name": "Parse Founder JSON",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1066,7 +1066,7 @@
       }
     },
     {
-      "id": "02428737-9420-46fd-a662-bbdd3c83b2ac",
+      "id": "e79b3b5e-97b7-465f-af6e-aa800d22ae93",
       "name": "Gemini LinkedIn Copy",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1101,7 +1101,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "8a9899f7-e4ee-4944-a58e-5645dda7da5a",
+      "id": "b099f8ef-fa32-4c5d-9cb7-14ab72c24f7f",
       "name": "Parse LinkedIn Copy JSON",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1115,7 +1115,7 @@
       }
     },
     {
-      "id": "2077ae56-76a5-4ab8-bb47-ae58560f773f",
+      "id": "2f750020-dec4-4d51-86b7-5781a2a657ad",
       "name": "Archive Low ICP",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -1128,13 +1128,13 @@
         "assignments": {
           "assignments": [
             {
-              "id": "a00fff87-9410-40e3-8bcc-86ffa5e09cd9",
+              "id": "a6600a7d-601e-4859-a450-6e6283537489",
               "name": "status",
               "value": "archived",
               "type": "string"
             },
             {
-              "id": "07dcbb1e-3f78-4537-b49e-05eba0ea2a94",
+              "id": "5fa23b69-be86-433e-b0f0-f7cb10010a69",
               "name": "priority",
               "value": "low",
               "type": "string"
@@ -1145,7 +1145,7 @@
       }
     },
     {
-      "id": "bb5d7c25-84e6-4290-968b-10273a3c2c68",
+      "id": "5e48d9d2-30bc-429d-bb87-da142dc8c1c0",
       "name": "Merge Scored Paths",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
@@ -1159,7 +1159,7 @@
       }
     },
     {
-      "id": "aa702c53-950e-4f83-8ec0-430d46030615",
+      "id": "5ac2d741-b706-40e1-8e06-2eb84bea6462",
       "name": "Sheets Append Lead",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -1211,7 +1211,7 @@
       }
     },
     {
-      "id": "26fc79c1-9dbc-4e74-a03c-b730330b9c99",
+      "id": "5ca45873-58df-4782-9943-1a8f41962641",
       "name": "Loop Scrape Batches",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1225,7 +1225,7 @@
       }
     },
     {
-      "id": "ebfd63b5-4366-4f70-80ad-2d9e198d5f43",
+      "id": "84dbcdda-7524-4366-ac90-ee3acb91617e",
       "name": "Loop Discovery Batches",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1239,7 +1239,7 @@
       }
     },
     {
-      "id": "7a2186cb-e097-413f-a632-263eb29cc2b8",
+      "id": "e1772bbd-98ff-460e-b165-68f2fadefb83",
       "name": "Handle Serper Error",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -1252,13 +1252,13 @@
         "assignments": {
           "assignments": [
             {
-              "id": "269f5834-88e4-4c5c-8626-cf3e4d4eec51",
+              "id": "bc6df60f-29eb-4c6f-8fe4-b18e14ec0065",
               "name": "error_log",
               "value": "={{ $json.error?.message || \"Serper request failed\" }}",
               "type": "string"
             },
             {
-              "id": "9a9481b7-1843-43fe-918d-0baab19db6a4",
+              "id": "348acb94-b41d-4f0b-858d-e17dd33289ea",
               "name": "status",
               "value": "discovery_failed",
               "type": "string"
@@ -1269,7 +1269,7 @@
       }
     },
     {
-      "id": "ab10ca3a-c6a3-44d1-bf5e-1f7bb9d43d4a",
+      "id": "e0ecb222-092c-4011-827f-720cb3b4c575",
       "name": "Start LinkedIn Engagement Pass",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1283,7 +1283,7 @@
       }
     },
     {
-      "id": "a5ea5b36-ba12-4d58-a9d0-4be63b314562",
+      "id": "e380c65f-476c-4037-a243-d6217652129a",
       "name": "Read Leads For Engagement",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -1310,7 +1310,7 @@
       }
     },
     {
-      "id": "e1029643-c318-4abf-8a4f-bf56f878fa2d",
+      "id": "eadbda45-6d3a-432d-a681-7b5006ae27c9",
       "name": "Compute Daily Limits",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1324,7 +1324,7 @@
       }
     },
     {
-      "id": "03249d5b-c21a-4434-b8b3-93131f0b69a2",
+      "id": "76849802-533b-4978-abdf-e548dffe559d",
       "name": "Filter Stage - View Profile",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1338,7 +1338,7 @@
       }
     },
     {
-      "id": "adf3adae-0319-40c1-91d9-19ba18e8cac3",
+      "id": "4331f59a-4d0c-4a86-85dc-5e3a628a6ef4",
       "name": "Filter Stage - Connection Request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1352,7 +1352,7 @@
       }
     },
     {
-      "id": "f21b819b-e6bc-434c-b365-65922be63d3e",
+      "id": "8e0df005-c08e-44b2-97d2-781d719100f9",
       "name": "Filter Stage - Relationship Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1366,7 +1366,7 @@
       }
     },
     {
-      "id": "5ae4683c-6183-40b2-ba01-cca89b60755a",
+      "id": "9eaba1de-1388-4328-8fc1-1978165c7f5a",
       "name": "Merge Engagement Queues",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
@@ -1380,7 +1380,7 @@
       }
     },
     {
-      "id": "62f63401-2e0d-454b-8c88-248e4a94ec4c",
+      "id": "5bd23dee-dfd5-4710-9689-b06feb3fe549",
       "name": "IF Has Engagement Items",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -1410,7 +1410,7 @@
       }
     },
     {
-      "id": "048de180-77c5-4c22-a486-336a2ed6bdec",
+      "id": "ecd8267e-8a74-4f84-b72d-9661797220fb",
       "name": "Split Engagement Batches",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -1426,7 +1426,7 @@
       }
     },
     {
-      "id": "6ed46872-7429-4160-8dc2-b5db81fd87b4",
+      "id": "30a4e08d-d134-41cb-84da-c11154142821",
       "name": "Random Human Delay",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1440,7 +1440,7 @@
       }
     },
     {
-      "id": "63d92445-ce8c-4381-97a6-68525b31912c",
+      "id": "f0de32b8-35b7-4702-b1a3-acae6c323e8e",
       "name": "Wait Human Pacing",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -1455,7 +1455,7 @@
       }
     },
     {
-      "id": "dd027e91-1115-4e55-b284-5c9526ed7582",
+      "id": "c2952bdb-a3b4-4def-82b2-82f2e567c06b",
       "name": "Route LinkedIn Action",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
@@ -1520,7 +1520,7 @@
       }
     },
     {
-      "id": "19d46fe9-3518-4e57-bde1-a286fe6bf123",
+      "id": "3cbf0250-12e1-4cb1-a733-69aff8ce5b00",
       "name": "IF Playwright Webhook Enabled",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -1551,7 +1551,7 @@
       "notes": "POST to external Playwright runner when COGNIX_PLAYWRIGHT_WEBHOOK_URL is set."
     },
     {
-      "id": "2b7eb11b-d6dd-4d9b-a9d8-a276fc52e3c9",
+      "id": "69cbedf0-8b93-46e2-8cc9-1148fa4a543e",
       "name": "Webhook Playwright View",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1586,41 +1586,12 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "4535f011-7005-4845-8fbd-fdff906ff2a2",
-      "name": "Execute Command View Placeholder",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        200,
-        360
-      ],
-      "parameters": {
-        "command": "={{ \"echo PLAYWRIGHT_PLACEHOLDER view_profile \" + ($json.founder_linkedin_url || \"\") + \" # Run: node scripts/linkedin-view.mjs\" }}"
-      },
-      "notes": "Placeholder for local Playwright. Replace with: node d:/path/scripts/linkedin-view.mjs",
-      "onError": "continueRegularOutput"
-    },
-    {
-      "id": "d92fa430-440b-4dbf-a49b-94d1af583f96",
-      "name": "Merge View Automation",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        440,
-        280
-      ],
-      "parameters": {
-        "mode": "append",
-        "numberInputs": 2
-      }
-    },
-    {
-      "id": "557190ed-6e6b-44d5-ab70-c14ee8caf36a",
+      "id": "742ba161-6c2f-4da8-bda8-a818669549ad",
       "name": "Sheets Update Viewed",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        680,
+        440,
         280
       ],
       "parameters": {
@@ -1653,7 +1624,7 @@
       }
     },
     {
-      "id": "46952c62-e584-4e57-81d4-e32af9970447",
+      "id": "51c32015-c4b0-48d4-ac1f-257e088cf381",
       "name": "IF Playwright Webhook Connect",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -1683,7 +1654,7 @@
       }
     },
     {
-      "id": "8e071d6c-eaf1-4c2c-a92e-8357091c96b2",
+      "id": "aa0d20d1-159a-47dd-888f-3f7c5f950a2b",
       "name": "Webhook Playwright Connect",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1718,40 +1689,12 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "d6333c23-dd84-4e34-a082-89a7fa4a006c",
-      "name": "Execute Command Connect Placeholder",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        200,
-        500
-      ],
-      "parameters": {
-        "command": "={{ \"echo PLAYWRIGHT_PLACEHOLDER connection_request \" + ($json.founder_linkedin_url || \"\") + \" # Run: node scripts/linkedin-connect.mjs\" }}"
-      },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "id": "fdfd1f44-b48b-4105-8673-2ba33ce3be33",
-      "name": "Merge Connect Automation",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        440,
-        420
-      ],
-      "parameters": {
-        "mode": "append",
-        "numberInputs": 2
-      }
-    },
-    {
-      "id": "62c8db74-7157-4b92-825f-fdaf4eb6ce6a",
+      "id": "d79a2fd1-68f3-4a7a-8b47-ca5b86a1b1bd",
       "name": "Sheets Update Connection Requested",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        680,
+        440,
         420
       ],
       "parameters": {
@@ -1784,7 +1727,7 @@
       }
     },
     {
-      "id": "ebf634ff-3b71-4f18-9e0e-e7571790ed61",
+      "id": "977851c8-f4ec-4faa-9b4c-a471f0ae4713",
       "name": "IF Playwright Webhook Message",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -1814,7 +1757,7 @@
       }
     },
     {
-      "id": "a3e15fbe-4680-4ea7-8536-ca161d0e3a4f",
+      "id": "86fb78de-bcce-4e43-9485-45c8c1ac4b25",
       "name": "Webhook Playwright Message",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1849,40 +1792,12 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "098b8d2c-9ee7-4ff4-a940-60844f99a40f",
-      "name": "Execute Command Message Placeholder",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        200,
-        640
-      ],
-      "parameters": {
-        "command": "={{ \"echo PLAYWRIGHT_PLACEHOLDER relationship_message \" + ($json.founder_linkedin_url || \"\") + \" # Run: node scripts/linkedin-message.mjs\" }}"
-      },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "id": "f1bccac6-26ca-404b-8d1d-997ce240443c",
-      "name": "Merge Message Automation",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        440,
-        560
-      ],
-      "parameters": {
-        "mode": "append",
-        "numberInputs": 2
-      }
-    },
-    {
-      "id": "042420df-6f55-42db-8098-28623066686c",
+      "id": "00123887-268f-4195-9946-a480a9ebff27",
       "name": "Sheets Update Message Sent",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        680,
+        440,
         560
       ],
       "parameters": {
@@ -1915,7 +1830,7 @@
       }
     },
     {
-      "id": "215878cf-db0b-4301-b803-ef59923757ac",
+      "id": "f5778377-dc26-481b-938a-be86f3014e49",
       "name": "Merge Engagement Updates",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
@@ -1929,7 +1844,7 @@
       }
     },
     {
-      "id": "2f03db72-f747-4381-9161-5a3fa6cb84dd",
+      "id": "6c6b8ad3-0725-4a42-bec3-6a65a1340a38",
       "name": "Loop Engagement Batches",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1943,7 +1858,7 @@
       }
     },
     {
-      "id": "60fefeb9-d23b-4e47-afb5-bed9e87c1318",
+      "id": "b1f0262f-8ada-4d2f-bfaa-72eb35e94031",
       "name": "Error Trigger",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
@@ -1954,7 +1869,7 @@
       "parameters": {}
     },
     {
-      "id": "a91d0181-1aec-4235-8cae-3dbdfd951b05",
+      "id": "fe124fc4-80b6-4469-93a2-ce7ce48b980e",
       "name": "Log Error Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1968,7 +1883,7 @@
       }
     },
     {
-      "id": "66ee9fe9-3e39-4927-8f2b-a54b9daffcc0",
+      "id": "8a2e708a-8553-4790-a01f-da604ff17b50",
       "name": "Sheets Log Error",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -2001,7 +1916,7 @@
       }
     },
     {
-      "id": "f182111d-5ada-47de-95b8-f9b9723f6dd4",
+      "id": "29c59ab1-ffa9-4137-94cc-e16ad7a1eca3",
       "name": "IF Error Webhook Enabled",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -2031,7 +1946,7 @@
       }
     },
     {
-      "id": "886ab6da-dafd-4ad6-a2f1-a7d432221538",
+      "id": "e7a4d4c8-854f-4a33-9fa6-bb1dd7826bd4",
       "name": "HTTP Error Notify",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -2057,7 +1972,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "c7427a96-a302-43f0-a1a8-7a5afad0aedd",
+      "id": "b58f8e32-00f7-43cc-983b-6fa080de6394",
       "name": "NOTE Architecture",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -2875,7 +2790,7 @@
         ],
         [
           {
-            "node": "Execute Command View Placeholder",
+            "node": "Loop Engagement Batches",
             "type": "main",
             "index": 0
           }
@@ -2883,28 +2798,6 @@
       ]
     },
     "Webhook Playwright View": {
-      "main": [
-        [
-          {
-            "node": "Merge View Automation",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute Command View Placeholder": {
-      "main": [
-        [
-          {
-            "node": "Merge View Automation",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge View Automation": {
       "main": [
         [
           {
@@ -2926,7 +2819,7 @@
         ],
         [
           {
-            "node": "Execute Command Connect Placeholder",
+            "node": "Loop Engagement Batches",
             "type": "main",
             "index": 0
           }
@@ -2934,28 +2827,6 @@
       ]
     },
     "Webhook Playwright Connect": {
-      "main": [
-        [
-          {
-            "node": "Merge Connect Automation",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute Command Connect Placeholder": {
-      "main": [
-        [
-          {
-            "node": "Merge Connect Automation",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Connect Automation": {
       "main": [
         [
           {
@@ -2977,7 +2848,7 @@
         ],
         [
           {
-            "node": "Execute Command Message Placeholder",
+            "node": "Loop Engagement Batches",
             "type": "main",
             "index": 0
           }
@@ -2985,28 +2856,6 @@
       ]
     },
     "Webhook Playwright Message": {
-      "main": [
-        [
-          {
-            "node": "Merge Message Automation",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute Command Message Placeholder": {
-      "main": [
-        [
-          {
-            "node": "Merge Message Automation",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Message Automation": {
       "main": [
         [
           {

@@ -44,7 +44,6 @@ function node(name, type, position, parameters, extra = {}) {
     'n8n-nodes-base.if': 2.2,
     'n8n-nodes-base.switch': 3.2,
     'n8n-nodes-base.googleSheets': 4.5,
-    'n8n-nodes-base.executeCommand': 1,
     'n8n-nodes-base.errorTrigger': 1,
     'n8n-nodes-base.stickyNote': 1,
   };
@@ -1098,7 +1097,7 @@ nodes.push(
   })
 );
 
-// Playwright placeholders — webhook (preferred) + execute command (local script)
+// LinkedIn browser actions via external webhook (COGNIX_PLAYWRIGHT_WEBHOOK_URL)
 const playwrightPayload = (action) =>
   `={{ JSON.stringify({
   action: "${action}",
@@ -1143,19 +1142,7 @@ nodes.push(
   }, { onError: 'continueErrorOutput' })
 );
 nodes.push(
-  node('Execute Command View Placeholder', 'n8n-nodes-base.executeCommand', [200, 360], {
-    command:
-      '={{ "echo PLAYWRIGHT_PLACEHOLDER view_profile " + ($json.founder_linkedin_url || "") + " # Run: node scripts/linkedin-view.mjs" }}',
-  }, {
-    notes: 'Placeholder for local Playwright. Replace with: node d:/path/scripts/linkedin-view.mjs',
-    onError: 'continueRegularOutput',
-  })
-);
-nodes.push(
-  node('Merge View Automation', 'n8n-nodes-base.merge', [440, 280], { mode: 'append', numberInputs: 2 })
-);
-nodes.push(
-  node('Sheets Update Viewed', 'n8n-nodes-base.googleSheets', [680, 280], {
+  node('Sheets Update Viewed', 'n8n-nodes-base.googleSheets', [440, 280], {
     operation: 'update',
     documentId: { __rl: true, value: '={{ $("Compute Daily Limits").first().json.spreadsheetId }}', mode: 'id' },
     sheetName: { __rl: true, value: '={{ $("Compute Daily Limits").first().json.sheetName }}', mode: 'name' },
@@ -1203,16 +1190,7 @@ nodes.push(
   }, { onError: 'continueErrorOutput' })
 );
 nodes.push(
-  node('Execute Command Connect Placeholder', 'n8n-nodes-base.executeCommand', [200, 500], {
-    command:
-      '={{ "echo PLAYWRIGHT_PLACEHOLDER connection_request " + ($json.founder_linkedin_url || "") + " # Run: node scripts/linkedin-connect.mjs" }}',
-  }, { onError: 'continueRegularOutput' })
-);
-nodes.push(
-  node('Merge Connect Automation', 'n8n-nodes-base.merge', [440, 420], { mode: 'append', numberInputs: 2 })
-);
-nodes.push(
-  node('Sheets Update Connection Requested', 'n8n-nodes-base.googleSheets', [680, 420], {
+  node('Sheets Update Connection Requested', 'n8n-nodes-base.googleSheets', [440, 420], {
     operation: 'update',
     documentId: { __rl: true, value: '={{ $("Compute Daily Limits").first().json.spreadsheetId }}', mode: 'id' },
     sheetName: { __rl: true, value: '={{ $("Compute Daily Limits").first().json.sheetName }}', mode: 'name' },
@@ -1260,16 +1238,7 @@ nodes.push(
   }, { onError: 'continueErrorOutput' })
 );
 nodes.push(
-  node('Execute Command Message Placeholder', 'n8n-nodes-base.executeCommand', [200, 640], {
-    command:
-      '={{ "echo PLAYWRIGHT_PLACEHOLDER relationship_message " + ($json.founder_linkedin_url || "") + " # Run: node scripts/linkedin-message.mjs" }}',
-  }, { onError: 'continueRegularOutput' })
-);
-nodes.push(
-  node('Merge Message Automation', 'n8n-nodes-base.merge', [440, 560], { mode: 'append', numberInputs: 2 })
-);
-nodes.push(
-  node('Sheets Update Message Sent', 'n8n-nodes-base.googleSheets', [680, 560], {
+  node('Sheets Update Message Sent', 'n8n-nodes-base.googleSheets', [440, 560], {
     operation: 'update',
     documentId: { __rl: true, value: '={{ $("Compute Daily Limits").first().json.spreadsheetId }}', mode: 'id' },
     sheetName: { __rl: true, value: '={{ $("Compute Daily Limits").first().json.sheetName }}', mode: 'name' },
@@ -1448,24 +1417,18 @@ conn('Wait Human Pacing', 'Route LinkedIn Action');
 
 conn('Route LinkedIn Action', 'IF Playwright Webhook Enabled', 0, 0);
 conn('IF Playwright Webhook Enabled', 'Webhook Playwright View', 0, 0);
-conn('IF Playwright Webhook Enabled', 'Execute Command View Placeholder', 1, 0);
-conn('Webhook Playwright View', 'Merge View Automation', 0, 0);
-conn('Execute Command View Placeholder', 'Merge View Automation', 0, 1);
-conn('Merge View Automation', 'Sheets Update Viewed');
+conn('IF Playwright Webhook Enabled', 'Loop Engagement Batches', 1, 0);
+conn('Webhook Playwright View', 'Sheets Update Viewed');
 
 conn('Route LinkedIn Action', 'IF Playwright Webhook Connect', 1, 0);
 conn('IF Playwright Webhook Connect', 'Webhook Playwright Connect', 0, 0);
-conn('IF Playwright Webhook Connect', 'Execute Command Connect Placeholder', 1, 0);
-conn('Webhook Playwright Connect', 'Merge Connect Automation', 0, 0);
-conn('Execute Command Connect Placeholder', 'Merge Connect Automation', 0, 1);
-conn('Merge Connect Automation', 'Sheets Update Connection Requested');
+conn('IF Playwright Webhook Connect', 'Loop Engagement Batches', 1, 0);
+conn('Webhook Playwright Connect', 'Sheets Update Connection Requested');
 
 conn('Route LinkedIn Action', 'IF Playwright Webhook Message', 2, 0);
 conn('IF Playwright Webhook Message', 'Webhook Playwright Message', 0, 0);
-conn('IF Playwright Webhook Message', 'Execute Command Message Placeholder', 1, 0);
-conn('Webhook Playwright Message', 'Merge Message Automation', 0, 0);
-conn('Execute Command Message Placeholder', 'Merge Message Automation', 0, 1);
-conn('Merge Message Automation', 'Sheets Update Message Sent');
+conn('IF Playwright Webhook Message', 'Loop Engagement Batches', 1, 0);
+conn('Webhook Playwright Message', 'Sheets Update Message Sent');
 
 conn('Sheets Update Viewed', 'Merge Engagement Updates', 0, 0);
 conn('Sheets Update Connection Requested', 'Merge Engagement Updates', 0, 1);
