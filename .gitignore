@@ -1,0 +1,19 @@
+# Secrets
+.env
+.env.*
+*.pem
+credentials.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# n8n local
+.n8n/

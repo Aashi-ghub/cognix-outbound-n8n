@@ -1,0 +1,2697 @@
+{
+  "name": "CognixAI Labs - Outbound Lead Intelligence Platform (Unified)",
+  "nodes": [
+    {
+      "id": "951ada7e-6e29-4ac3-9c9f-5bf1c6434cb9",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3200,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "023e93d5-5537-4d2f-82fb-eb3a236ecd89",
+      "name": "Schedule - Discovery",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -3200,
+        -200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * 1,3,5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "afac8d12-394b-43c2-9801-d238d46ebcf4",
+      "name": "Schedule - Follow-ups",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -3200,
+        200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fcc59308-3467-4168-bf17-0cd88e4defa6",
+      "name": "Merge Triggers",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -2960,
+        0
+      ],
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 3
+      }
+    },
+    {
+      "id": "eaf637a7-01c2-4eb7-bef9-28dceb3caaca",
+      "name": "Workflow Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2720,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "56204653-aa9e-4696-803f-5b673f596399",
+              "name": "runMode",
+              "value": "full",
+              "type": "string"
+            },
+            {
+              "id": "8f1cb6d9-597f-4184-b89c-b21cb2291fd1",
+              "name": "spreadsheetId",
+              "value": "={{ $env.COGNIX_LEADS_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+              "type": "string"
+            },
+            {
+              "id": "7904744d-bcfe-45d5-b78c-db1103e4292c",
+              "name": "sheetName",
+              "value": "Leads",
+              "type": "string"
+            },
+            {
+              "id": "a58a18d4-1f68-448a-a7a4-797d9a939346",
+              "name": "industries",
+              "value": "=[\"AI SaaS\",\"B2B SaaS\",\"recruitment agencies\",\"workflow automation\",\"operations-heavy B2B\"]",
+              "type": "array"
+            },
+            {
+              "id": "da03ea4c-f57f-4424-9d8b-1fff37ba7858",
+              "name": "serperQueries",
+              "value": "=[\"AI SaaS company site:linkedin.com/company\",\"B2B SaaS startup hiring operations\",\"recruitment agency workflow automation\",\"agency scaling operations team\",\"workflow-heavy SaaS company careers\"]",
+              "type": "array"
+            },
+            {
+              "id": "47e71782-d1ef-4702-8db6-7225d3cc1d6f",
+              "name": "discoveryBatchSize",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "id": "af1fab9e-59a0-4470-acf4-c4fa7ca465fb",
+              "name": "scrapeBatchSize",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "589686e0-b1a7-47d7-b8f9-decdba05193f",
+              "name": "outreachBatchSize",
+              "value": 10,
+              "type": "number"
+            },
+            {
+              "id": "9a391c66-77d4-4e8a-82d5-3401cea219d7",
+              "name": "serperWaitMs",
+              "value": 2000,
+              "type": "number"
+            },
+            {
+              "id": "db7f1d1d-d607-470f-a895-0740fd6cfeaa",
+              "name": "firecrawlWaitMs",
+              "value": 3000,
+              "type": "number"
+            },
+            {
+              "id": "c16081f8-724e-483b-a41a-80ab4a77b201",
+              "name": "openaiWaitMs",
+              "value": 1500,
+              "type": "number"
+            },
+            {
+              "id": "f775ee1f-17a5-4c0f-9a9a-c4900d57df44",
+              "name": "fromEmail",
+              "value": "={{ $env.COGNIX_FROM_EMAIL || 'founder@cognixailabs.com' }}",
+              "type": "string"
+            },
+            {
+              "id": "6dae33a8-f388-409e-9464-5dac32888639",
+              "name": "senderName",
+              "value": "CognixAI Labs",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "72fb00df-48ce-4ef3-b6d5-20dd94f3f21a",
+      "name": "Detect Run Mode",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2480,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const config = $input.first().json;\nconst discoveryRan = $('Schedule - Discovery').isExecuted;\nconst followupsRan = $('Schedule - Follow-ups').isExecuted;\nconst manualRan = $('Manual Trigger').isExecuted;\nlet runMode = 'full';\nif (followupsRan && !discoveryRan && !manualRan) runMode = 'followups_only';\nelse if (discoveryRan && !manualRan) runMode = 'discovery_pipeline';\nelse if (manualRan) runMode = 'full';\nreturn [{ json: { ...config, runMode } }];"
+      }
+    },
+    {
+      "id": "a20cde82-022f-4d1c-9950-97ad843e830b",
+      "name": "Route Run Mode",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2240,
+        0
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.runMode }}",
+                    "rightValue": "followups_only",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "followups_only"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.runMode }}",
+                    "rightValue": "discovery_pipeline",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "discovery_pipeline"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "fallbackOutputName": "full_pipeline"
+        }
+      }
+    },
+    {
+      "id": "59d58fb2-0a01-4fe3-a7bf-f75f0567ff4f",
+      "name": "Read Existing Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2000,
+        -400
+      ],
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetName }}",
+          "mode": "name"
+        },
+        "options": {
+          "rangeDefinition": "specifyRange",
+          "range": "A:Z"
+        }
+      }
+    },
+    {
+      "id": "7d2298be-7769-46a7-95fe-0f18338123ee",
+      "name": "Build Dedup Index",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1760,
+        -400
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const config = $('Detect Run Mode').first().json;\nconst rows = $input.all().map(i => i.json);\nconst seenDomains = new Set();\nconst seenNames = new Set();\nfor (const r of rows) {\n  const website = (r.website || r.Website || '').toString().toLowerCase().replace(/^https?:\\/\\//,'').replace(/\\/$/,'');\n  const name = (r.company_name || r['Company Name'] || '').toString().toLowerCase().trim();\n  if (website) seenDomains.add(website);\n  if (name) seenNames.add(name);\n}\nreturn [{ json: { ...config, seenDomains: [...seenDomains], seenNames: [...seenNames], existingRows: rows } }];"
+      }
+    },
+    {
+      "id": "5949a7c3-58cd-4bb7-b3bd-03cfc5782081",
+      "name": "Build Discovery Queries",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1520,
+        -400
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $input.first().json;\nconst queries = Array.isArray(cfg.serperQueries) ? cfg.serperQueries : JSON.parse(cfg.serperQueries || '[]');\nconst items = queries.map((q, idx) => ({\n  json: {\n    ...cfg,\n    searchQuery: q,\n    page: 1,\n    maxPages: 3,\n    queryIndex: idx,\n  },\n}));\nreturn items.length ? items : [{ json: { ...cfg, searchQuery: 'B2B SaaS AI automation company', page: 1, maxPages: 1, queryIndex: 0 } }];"
+      }
+    },
+    {
+      "id": "21fce49c-0eb6-4c13-99cb-841df86222aa",
+      "name": "Split Discovery Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1280,
+        -400
+      ],
+      "parameters": {
+        "batchSize": "={{ $json.discoveryBatchSize || 5 }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "30f65a00-a737-488f-a568-d303d5f255d5",
+      "name": "Serper Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1040,
+        -400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-API-KEY",
+              "value": "={{ $env.SERPER_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ q: $json.searchQuery, num: 10, page: $json.page || 1, gl: \"us\", hl: \"en\" }) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 3,
+            "waitBetween": 2000
+          },
+          "timeout": 120000
+        }
+      },
+      "onError": "continueErrorOutput",
+      "notes": "Serper company discovery. Credential: HTTP Header Auth with X-API-KEY or use env."
+    },
+    {
+      "id": "af78b1d7-f6d7-48e5-84d5-73d9d8de6bcc",
+      "name": "Wait Serper Rate Limit",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -800,
+        -400
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": "={{ $(\"Build Discovery Queries\").first().json.serperWaitMs || 2000 }}",
+        "unit": "milliseconds"
+      }
+    },
+    {
+      "id": "488cc5c4-74c1-442f-8457-fa37339dd14f",
+      "name": "Parse Serper Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        -400
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const src = $('Split Discovery Batches').item.json;\nconst body = $input.item.json;\nconst organic = body.organic || [];\nconst companies = organic.map((r, i) => {\n  const link = r.link || '';\n  let website = link;\n  if (link.includes('linkedin.com')) website = (r.snippet || '').match(/https?:\\/\\/[^\\s)]+/)?.[0] || '';\n  const domain = website.replace(/^https?:\\/\\//,'').split('/')[0];\n  return {\n    lead_id: `cognix_${Date.now()}_${src.queryIndex}_${i}`,\n    company_name: r.title?.split('|')[0]?.split('-')[0]?.trim() || r.title || 'Unknown Company',\n    website: website.startsWith('http') ? website : (domain ? `https://${domain}` : ''),\n    linkedin_url: link.includes('linkedin.com') ? link : '',\n    description: r.snippet || '',\n    source_query: src.searchQuery,\n    discovery_page: src.page,\n    status: 'discovered',\n    outreach_stage: 'none',\n    reply_detected: false,\n    created_at: new Date().toISOString(),\n  };\n}).filter(c => c.company_name);\nreturn companies.map(json => ({ json }));"
+      }
+    },
+    {
+      "id": "a83171e8-a9c6-4b4d-99f4-0c2e5dfb8b27",
+      "name": "IF More Serper Pages",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -320,
+        -520
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $(\"Split Discovery Batches\").item.json.page }}",
+              "rightValue": "={{ $(\"Split Discovery Batches\").item.json.maxPages }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "ab3c68d3-8ca4-4bd0-a9d6-208ef2da1ea9",
+      "name": "Increment Serper Page",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -640
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "00148df5-5e6f-4d39-9f49-a0bd69897d0a",
+              "name": "page",
+              "value": "={{ $(\"Split Discovery Batches\").item.json.page + 1 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true
+      }
+    },
+    {
+      "id": "7ae4956c-a88f-4d8e-b42a-ed25aff21db1",
+      "name": "Dedupe Companies",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -400
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Build Dedup Index').first().json;\nconst seenDomains = new Set(cfg.seenDomains || []);\nconst seenNames = new Set(cfg.seenNames || []);\nconst unique = [];\nconst localDomains = new Set();\nfor (const item of $input.all()) {\n  const c = item.json;\n  const domain = (c.website || '').toLowerCase().replace(/^https?:\\/\\//,'').replace(/\\/$/,'').split('/')[0];\n  const name = (c.company_name || '').toLowerCase().trim();\n  if (!name) continue;\n  if (domain && (seenDomains.has(domain) || localDomains.has(domain))) continue;\n  if (seenNames.has(name)) continue;\n  if (domain) { localDomains.add(domain); seenDomains.add(domain); }\n  seenNames.add(name);\n  unique.push({ json: c });\n}\nreturn unique;"
+      }
+    },
+    {
+      "id": "e72a2214-fae2-4626-a86d-51ea2723a681",
+      "name": "IF Has New Companies",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -80,
+        -400
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "123e7753-ffbe-4c67-aec3-ce8761fbbeb0",
+      "name": "Apify Optional Enrich",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        -400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/apify~google-search-scraper/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ \"Bearer \" + $env.APIFY_API_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ queries: $json.company_name + \" official website\", maxPagesPerQuery: 1, resultsPerPage: 3 }) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 3,
+            "waitBetween": 2000
+          },
+          "timeout": 120000
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "Optional enrichment when APIFY_API_TOKEN is set. On failure, passes through original company item."
+    },
+    {
+      "id": "563aec10-6ad1-4371-a911-2609d23b25c2",
+      "name": "Merge Apify Enrichment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        -400
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const base = $('Dedupe Companies').all()[$itemIndex]?.json || {};\nconst apify = $input.item.json;\nlet website = base.website;\nif (Array.isArray(apify) && apify[0]?.url) website = apify[0].url;\nif (apify?.organic?.[0]?.link) website = apify.organic[0].link;\nreturn { json: { ...base, website: website || base.website, apify_enriched: Boolean($env.APIFY_API_TOKEN) } };"
+      }
+    },
+    {
+      "id": "123c1360-5a18-49b4-89b9-1efbb10ddb8a",
+      "name": "Split Scrape Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        160,
+        -400
+      ],
+      "parameters": {
+        "batchSize": "={{ $(\"Build Dedup Index\").first().json.scrapeBatchSize || 3 }}"
+      }
+    },
+    {
+      "id": "9cf8d708-03b2-4f5d-b987-9370c6b047a4",
+      "name": "Firecrawl Homepage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        -400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ \"Bearer \" + $env.FIRECRAWL_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ url: $json.website, formats: [\"markdown\"], onlyMainContent: true, timeout: 60000 }) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 3,
+            "waitBetween": 2000
+          },
+          "timeout": 120000
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "7e3af2a4-72be-4ffd-8b1d-b8b522ef1877",
+      "name": "Wait Firecrawl Rate Limit",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        -400
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": "={{ $(\"Build Dedup Index\").first().json.firecrawlWaitMs || 3000 }}",
+        "unit": "milliseconds"
+      }
+    },
+    {
+      "id": "5d2378f5-a1f9-495a-a6b9-26b07821a81f",
+      "name": "Firecrawl Careers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ \"Bearer \" + $env.FIRECRAWL_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ url: ($json.website || \"\").replace(/\\/$/,\"\") + \"/careers\", formats: [\"markdown\"], onlyMainContent: true, timeout: 60000 }) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 3,
+            "waitBetween": 2000
+          },
+          "timeout": 120000
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "377ab336-69b7-407d-928f-477e606e733a",
+      "name": "Firecrawl Product",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        -400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ \"Bearer \" + $env.FIRECRAWL_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ url: ($json.website || \"\").replace(/\\/$/,\"\") + \"/product\", formats: [\"markdown\"], onlyMainContent: true, timeout: 60000 }) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 3,
+            "waitBetween": 2000
+          },
+          "timeout": 120000
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "698fa9d5-2bf5-43aa-9deb-f05528fcdec5",
+      "name": "Extract Scrape Signals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -400
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const company = $('Split Scrape Batches').item.json;\nconst homepage = $('Firecrawl Homepage').item.json?.data?.markdown || $('Firecrawl Homepage').item.json?.markdown || '';\nconst careers = $('Firecrawl Careers').item.json?.data?.markdown || '';\nconst product = $('Firecrawl Product').item.json?.markdown || $('Firecrawl Product').item.json?.data?.markdown || '';\nconst combined = [homepage, careers, product].join('\\n').toLowerCase();\nconst count = (term) => (combined.match(new RegExp(term, 'gi')) || []).length;\nreturn {\n  json: {\n    ...company,\n    scraped_homepage: homepage.slice(0, 12000),\n    scraped_careers: careers.slice(0, 8000),\n    scraped_product: product.slice(0, 8000),\n    signals: {\n      ai_mentions: count('\\\\b(ai|artificial intelligence|llm|gpt|machine learning)\\\\b'),\n      automation_mentions: count('\\\\b(automation|automate|workflow|orchestrat)\\\\b'),\n      hiring_mentions: count('\\\\b(hiring|careers|open roles|we\\\\'re hiring)\\\\b'),\n      support_mentions: count('\\\\b(support|customer success|helpdesk|ticket)\\\\b'),\n    },\n    status: 'scraped',\n    updated_at: new Date().toISOString(),\n  },\n};"
+      }
+    },
+    {
+      "id": "c61bf858-b176-4040-a0f1-4b9b014c3a1c",
+      "name": "Wait OpenAI Rate Limit",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1600,
+        -400
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": "={{ $(\"Build Dedup Index\").first().json.openaiWaitMs || 1500 }}",
+        "unit": "milliseconds"
+      }
+    },
+    {
+      "id": "09cad581-5231-4284-a6a4-a37bf192e87a",
+      "name": "OpenAI Lead Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1840,
+        -400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ \"Bearer \" + $env.OPENAI_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"gpt-4o-mini\",\n  temperature: 0.2,\n  response_format: { type: \"json_object\" },\n  messages: [\n    { role: \"system\", content: \"You are a B2B GTM analyst for CognixAI Labs. Return STRICT JSON only with keys: ai_readiness_score, operational_complexity_score, buying_probability, likely_pain_points, workflow_complexity, internal_tooling_needs, onboarding_complexity, support_burden, scaling_signals, summary.\" },\n    { role: \"user\", content: \"Company: \" + $json.company_name + \"\\nWebsite: \" + $json.website + \"\\nDescription: \" + $json.description + \"\\nSignals: \" + JSON.stringify($json.signals) + \"\\nHomepage excerpt: \" + ($json.scraped_homepage || \"\").slice(0, 4000) + \"\\nCareers excerpt: \" + ($json.scraped_careers || \"\").slice(0, 2500) }\n  ]\n}) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 3,
+            "waitBetween": 2000
+          },
+          "timeout": 120000
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "a193cdf8-0ca2-4e0b-b170-2f36fc68227d",
+      "name": "IF OpenAI Analysis OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2080,
+        -400
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.choices?.[0]?.message?.content }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "d3035308-6688-458d-90f0-333ac2e64eb9",
+      "name": "Parse AI Analysis JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        -400
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const lead = $('Extract Scrape Signals').item.json;\nconst content = $input.item.json.choices?.[0]?.message?.content || '{}';\nlet analysis = {};\ntry { analysis = JSON.parse(content); } catch (e) {\n  analysis = { summary: content, ai_readiness_score: 50, operational_complexity_score: 50, buying_probability: 0.3 };\n}\nreturn { json: { ...lead, ...analysis, status: 'analyzed', updated_at: new Date().toISOString() } };"
+      }
+    },
+    {
+      "id": "ba302887-d153-41cc-b078-3799c2cade99",
+      "name": "ICP Weighted Scoring",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        -400
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const l = $input.item.json;\nconst s = l.signals || {};\nconst weights = {\n  ai: 0.2,\n  automation: 0.15,\n  hiring: 0.15,\n  support: 0.1,\n  ai_readiness: 0.15,\n  complexity: 0.1,\n  buying: 0.15,\n};\nconst norm = (v, max = 10) => Math.min(100, (Number(v) || 0) / max * 100);\nconst score =\n  norm(s.ai_mentions) * weights.ai +\n  norm(s.automation_mentions) * weights.automation +\n  norm(s.hiring_mentions) * weights.hiring +\n  norm(s.support_mentions) * weights.support +\n  (Number(l.ai_readiness_score) || 50) * weights.ai_readiness +\n  (Number(l.operational_complexity_score) || 50) * weights.complexity +\n  (Number(l.buying_probability) || 0) * 100 * weights.buying;\nconst icp_score = Math.round(Math.min(100, Math.max(0, score)));\nlet priority = 'low';\nif (icp_score >= 75) priority = 'high';\nelse if (icp_score >= 50) priority = 'medium';\nconst route = priority === 'high' ? 'immediate_outreach' : priority === 'medium' ? 'nurture' : 'archive';\nreturn {\n  json: {\n    ...l,\n    icp_score,\n    priority,\n    route,\n    lead_quality: priority,\n    status: priority === 'low' ? 'archived' : 'scored',\n    updated_at: new Date().toISOString(),\n  },\n};"
+      }
+    },
+    {
+      "id": "71ada9f9-671d-4c29-8404-70cf2cc56445",
+      "name": "Route ICP Priority",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        2800,
+        -400
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.priority }}",
+                    "rightValue": "high",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "high"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.priority }}",
+                    "rightValue": "medium",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "medium"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "fallbackOutputName": "low_archive"
+        }
+      }
+    },
+    {
+      "id": "d36df467-9684-4b7d-9019-a08f460ac2f5",
+      "name": "OpenAI Personalization",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3040,
+        -560
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ \"Bearer \" + $env.OPENAI_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"gpt-4o-mini\",\n  temperature: 0.7,\n  response_format: { type: \"json_object\" },\n  messages: [\n    { role: \"system\", content: \"Write founder-level, human, non-salesy outreach for CognixAI Labs. Return STRICT JSON: linkedin_opener, email_subject, email_body, followup_1, followup_2, breakup_email, personalization_notes. Max 120 words per email. Operationally intelligent tone.\" },\n    { role: \"user\", content: JSON.stringify({ company_name: $json.company_name, website: $json.website, pain_points: $json.likely_pain_points, icp_score: $json.icp_score, summary: $json.summary }) }\n  ]\n}) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 3,
+            "waitBetween": 2000
+          },
+          "timeout": 120000
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "a57fcefe-1e89-40e3-a877-0b2bf02284c5",
+      "name": "Parse Personalization JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3280,
+        -560
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const lead = $('ICP Weighted Scoring').item.json;\nconst content = $input.item.json.choices?.[0]?.message?.content || '{}';\nlet copy = {};\ntry { copy = JSON.parse(content); } catch (e) { copy = { email_subject: 'Quick idea for ' + lead.company_name, email_body: content }; }\nreturn {\n  json: {\n    ...lead,\n    ...copy,\n    outreach_stage: lead.priority === 'high' ? 'ready_to_send' : 'nurture_queued',\n    status: lead.priority === 'low' ? 'archived' : 'personalized',\n    updated_at: new Date().toISOString(),\n  },\n};"
+      }
+    },
+    {
+      "id": "7f927273-ca0f-434e-83cc-e697e7aa9312",
+      "name": "Edit Fields - Lead Record",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3400,
+        -560
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "acc1d5a0-b53f-4649-a24b-208433f84ac0",
+              "name": "contact_email",
+              "value": "={{ $json.contact_email || 'hello@' + ($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "8190cf0e-240b-4205-a7dc-a5effedb4276",
+              "name": "route",
+              "value": "={{ $json.priority === \"high\" ? \"immediate_outreach\" : ($json.priority === \"medium\" ? \"nurture\" : \"archive\") }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2eb1c425-0dd1-47ff-8e78-06ce8d03483f",
+      "name": "Merge Outreach Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        3520,
+        -400
+      ],
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 2
+      }
+    },
+    {
+      "id": "9ae1949e-daf4-4e54-8b40-d9536d2d0f81",
+      "name": "Archive Low ICP",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3040,
+        -240
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eb3a95dd-416e-42a9-9a83-0d35fb05aa46",
+              "name": "status",
+              "value": "archived",
+              "type": "string"
+            },
+            {
+              "id": "a1ff032c-0b19-4885-8b2f-caa1464ae0d0",
+              "name": "outreach_stage",
+              "value": "archived",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true
+      }
+    },
+    {
+      "id": "2b7ebf48-844f-4152-ad68-d37b938bf6e8",
+      "name": "Sheets Append Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3760,
+        -400
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $(\"Build Dedup Index\").first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $(\"Build Dedup Index\").first().json.sheetName }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $json.lead_id }}",
+            "company_name": "={{ $json.company_name }}",
+            "website": "={{ $json.website }}",
+            "linkedin_url": "={{ $json.linkedin_url }}",
+            "description": "={{ $json.description }}",
+            "icp_score": "={{ $json.icp_score }}",
+            "priority": "={{ $json.priority }}",
+            "lead_quality": "={{ $json.lead_quality }}",
+            "ai_readiness_score": "={{ $json.ai_readiness_score }}",
+            "operational_complexity_score": "={{ $json.operational_complexity_score }}",
+            "buying_probability": "={{ $json.buying_probability }}",
+            "status": "={{ $json.status }}",
+            "outreach_stage": "={{ $json.outreach_stage }}",
+            "reply_detected": "={{ $json.reply_detected || false }}",
+            "linkedin_opener": "={{ $json.linkedin_opener }}",
+            "email_subject": "={{ $json.email_subject }}",
+            "email_body": "={{ $json.email_body }}",
+            "followup_1": "={{ $json.followup_1 }}",
+            "followup_2": "={{ $json.followup_2 }}",
+            "breakup_email": "={{ $json.breakup_email }}",
+            "last_contacted": "={{ $json.last_contacted || \"\" }}",
+            "personalization_notes": "={{ $json.personalization_notes }}",
+            "error_log": "={{ $json.error_log || \"\" }}",
+            "created_at": "={{ $json.created_at }}",
+            "updated_at": "={{ $json.updated_at }}"
+          }
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      }
+    },
+    {
+      "id": "20361dac-e1cb-4a40-b496-fc29d3f07244",
+      "name": "Read Leads For Outreach",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        4000,
+        -400
+      ],
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $(\"Build Dedup Index\").first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $(\"Build Dedup Index\").first().json.sheetName }}",
+          "mode": "name"
+        },
+        "options": {
+          "rangeDefinition": "specifyRange",
+          "range": "A:Z"
+        }
+      }
+    },
+    {
+      "id": "d19cd0ee-10dd-4571-b835-edaf4a0dcb48",
+      "name": "Filter Ready To Send",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4120,
+        -400
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return $input.all().filter(i => {\n  const r = i.json;\n  const stage = (r.outreach_stage || r['outreach_stage'] || '').toString();\n  const replied = r.reply_detected === true || r.reply_detected === 'TRUE';\n  const last = r.last_contacted || r['last_contacted'] || '';\n  return stage === 'ready_to_send' && !replied && !last;\n});"
+      }
+    },
+    {
+      "id": "1f645133-3587-4616-8bac-df7482fe3c0a",
+      "name": "Split Outreach Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        4240,
+        -400
+      ],
+      "parameters": {
+        "batchSize": "={{ $(\"Build Dedup Index\").first().json.outreachBatchSize || 10 }}"
+      }
+    },
+    {
+      "id": "65941801-a3f3-4ffa-aa95-e013920cd7c8",
+      "name": "IF Not Already Contacted",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4480,
+        -400
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.last_contacted || $json[\"last_contacted\"] || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty"
+              }
+            },
+            {
+              "leftValue": "={{ $json.reply_detected || $json[\"reply_detected\"] }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "e6644faf-1117-4e5c-bbee-3e498f97363b",
+      "name": "Gmail Send Initial",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        4720,
+        -480
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.contact_email || $env.COGNIX_DEFAULT_CONTACT_EMAIL || 'ops@' + ($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0] }}",
+        "subject": "={{ $json.email_subject || (\"Question about ops at \" + ($json.company_name || $json[\"company_name\"])) }}",
+        "emailType": "text",
+        "message": "={{ $json.email_body || $json[\"email_body\"] }}",
+        "options": {
+          "senderName": "={{ $(\"Build Dedup Index\").first().json.senderName }}",
+          "replyTo": "={{ $(\"Build Dedup Index\").first().json.fromEmail }}"
+        }
+      }
+    },
+    {
+      "id": "3ac5b4ef-3098-44c1-8fc2-718172511375",
+      "name": "Sheets Update Contacted",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        4960,
+        -480
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $(\"Build Dedup Index\").first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $(\"Build Dedup Index\").first().json.sheetName }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "outreach_stage": "initial_sent",
+            "status": "contacted",
+            "last_contacted": "={{ $now.toISO() }}",
+            "updated_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "lead_id"
+          ]
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      }
+    },
+    {
+      "id": "b8c55bbc-bcc4-49a2-a606-0e7a32caf856",
+      "name": "Read Active Outreach Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2000,
+        400
+      ],
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetName }}",
+          "mode": "name"
+        },
+        "options": {
+          "rangeDefinition": "specifyRange",
+          "range": "A:Z"
+        }
+      }
+    },
+    {
+      "id": "b971d3d6-953e-4449-b4d1-a7c7004a1f86",
+      "name": "Filter Follow-up Candidates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1760,
+        400
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Detect Run Mode').first().json;\nconst now = Date.now();\nconst day = 86400000;\nconst items = $input.all().map(i => i.json).filter(r => {\n  if (r.reply_detected === true || r.reply_detected === 'TRUE') return false;\n  const stage = (r.outreach_stage || '').toString();\n  if (!['initial_sent','followup_1_sent','followup_2_sent'].includes(stage)) return false;\n  const last = Date.parse(r.last_contacted || r.updated_at || 0);\n  if (!last) return false;\n  if (stage === 'initial_sent' && now - last >= 3 * day) return true;\n  if (stage === 'followup_1_sent' && now - last >= 5 * day) return true;\n  if (stage === 'followup_2_sent' && now - last >= 7 * day) return true;\n  return false;\n});\nreturn items.map(json => ({ json: { ...cfg, ...json } }));"
+      }
+    },
+    {
+      "id": "2498c61f-597f-4313-b081-0e69227de6dd",
+      "name": "Split Follow-up Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1520,
+        400
+      ],
+      "parameters": {
+        "batchSize": 5
+      }
+    },
+    {
+      "id": "b62c8d8a-d170-40d2-ad97-9aa93ecda308",
+      "name": "Gmail Check Replies",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1280,
+        400
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": 5,
+        "filters": {
+          "q": "={{ \"from:\" + ($json.contact_email || \"\") + \" newer_than:14d in:inbox\" }}"
+        }
+      }
+    },
+    {
+      "id": "dbafc5a9-a335-46f4-946c-2e7c8fd42b18",
+      "name": "IF Reply Detected",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1040,
+        400
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "7ccc51c9-7da3-4ada-bf12-5e4169412dea",
+      "name": "Sheets Mark Replied",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -800,
+        280
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $(\"Split Follow-up Batches\").item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $(\"Split Follow-up Batches\").item.json.sheetName }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "reply_detected": true,
+            "status": "replied",
+            "outreach_stage": "stopped_reply",
+            "lead_quality": "high_intent",
+            "updated_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "lead_id"
+          ]
+        }
+      }
+    },
+    {
+      "id": "8609f1f9-3696-49fd-a194-9691bc7fa2fa",
+      "name": "Route High Intent Lead",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        280
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0aabf131-4a00-475e-bf6c-36262d456f42",
+              "name": "route_target",
+              "value": "founder_slack_webhook",
+              "type": "string"
+            },
+            {
+              "id": "7cd8d294-b76c-41f4-ac5f-ea3d0594a27c",
+              "name": "alert_message",
+              "value": "={{ \"High-intent reply from \" + $json.company_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true
+      }
+    },
+    {
+      "id": "7de94a87-1389-4133-85f8-7ab405fa491e",
+      "name": "HTTP Alert High Intent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -320,
+        280
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.COGNIX_HIGH_INTENT_WEBHOOK_URL || 'https://hooks.example.com/cognix/high-intent' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.alert_message, lead: $json }) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 3,
+            "waitBetween": 2000
+          },
+          "timeout": 120000
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "e6dc5435-36f5-449b-b6a5-735547196d25",
+      "name": "Switch Follow-up Stage",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -800,
+        520
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $(\"Split Follow-up Batches\").item.json.outreach_stage }}",
+                    "rightValue": "initial_sent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "followup_1"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $(\"Split Follow-up Batches\").item.json.outreach_stage }}",
+                    "rightValue": "followup_1_sent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "followup_2"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "fallbackOutputName": "breakup"
+        }
+      }
+    },
+    {
+      "id": "1b97385f-1a5b-473e-b6b8-88e26da77b4d",
+      "name": "Gmail Send Follow-up 1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -560,
+        440
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.contact_email || 'ops@' + ($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0] }}",
+        "subject": "={{ \"Re: \" + ($json.email_subject || $json[\"email_subject\"] || \"following up\") }}",
+        "emailType": "text",
+        "message": "={{ $json.followup_1 || $json[\"followup_1\"] }}"
+      }
+    },
+    {
+      "id": "c16d6b17-90bf-4e1c-ae54-0396d508e47b",
+      "name": "Sheets Update Follow-up 1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -320,
+        440
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetName }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "outreach_stage": "followup_1_sent",
+            "last_contacted": "={{ $now.toISO() }}",
+            "updated_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "lead_id"
+          ]
+        }
+      }
+    },
+    {
+      "id": "e1d73262-5496-4f3b-9c71-85ad664d0eed",
+      "name": "Gmail Send Follow-up 2",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -560,
+        640
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.contact_email || 'ops@' + ($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0] }}",
+        "subject": "={{ \"Re: \" + ($json.email_subject || \"checking in\") }}",
+        "emailType": "text",
+        "message": "={{ $json.followup_2 || $json[\"followup_2\"] }}"
+      }
+    },
+    {
+      "id": "31f9f21b-5bde-4190-ab66-22bb47039a90",
+      "name": "Sheets Update Follow-up 2",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -320,
+        640
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetName }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "outreach_stage": "followup_2_sent",
+            "last_contacted": "={{ $now.toISO() }}",
+            "updated_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "lead_id"
+          ]
+        }
+      }
+    },
+    {
+      "id": "cce85e06-a4de-48d5-9232-898c2383c245",
+      "name": "Gmail Send Breakup",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -560,
+        840
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.contact_email || 'ops@' + ($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0] }}",
+        "subject": "={{ \"Closing the loop — \" + ($json.company_name || \"\") }}",
+        "emailType": "text",
+        "message": "={{ $json.breakup_email || $json[\"breakup_email\"] }}"
+      }
+    },
+    {
+      "id": "a6bc99d8-23a0-4ceb-8e85-ebe56041d9e9",
+      "name": "Sheets Update Breakup",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -320,
+        840
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetName }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "outreach_stage": "breakup_sent",
+            "status": "closed",
+            "last_contacted": "={{ $now.toISO() }}",
+            "updated_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "lead_id"
+          ]
+        }
+      }
+    },
+    {
+      "id": "8cdee6b7-6ca7-4b54-843a-1a132fb012c2",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3200,
+        600
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "face1159-fd51-4e75-ac88-39ad9a7deace",
+      "name": "Log Error Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2960,
+        600
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const err = $input.first().json;\nreturn [{\n  json: {\n    workflow: 'CognixAI Outbound Lead Intelligence',\n    timestamp: new Date().toISOString(),\n    execution_id: $execution.id,\n    node: err.execution?.lastNodeExecuted || 'unknown',\n    message: err.execution?.error?.message || JSON.stringify(err),\n    stack: err.execution?.error?.stack || '',\n  }\n}];"
+      }
+    },
+    {
+      "id": "520f3acc-7b9b-47bf-b5f0-87a447f949dd",
+      "name": "Sheets Log Error",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2720,
+        600
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.COGNIX_LEADS_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ErrorLog",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "execution_id": "={{ $json.execution_id }}",
+            "node": "={{ $json.node }}",
+            "message": "={{ $json.message }}",
+            "stack": "={{ $json.stack }}"
+          }
+        }
+      }
+    },
+    {
+      "id": "f1b7dc62-21ac-479e-a22c-7f218f00d451",
+      "name": "HTTP Error Notify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2480,
+        600
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.COGNIX_ERROR_WEBHOOK_URL || 'https://hooks.example.com/cognix/errors' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 3,
+            "waitBetween": 2000
+          },
+          "timeout": 120000
+        }
+      }
+    },
+    {
+      "id": "75c41f38-e25b-48cd-926f-7eb408719b83",
+      "name": "Handle Serper Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1040,
+        -200
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "67d5ab8a-6ccb-4687-812e-97b17fbf8ecf",
+              "name": "error_log",
+              "value": "={{ $json.error?.message || \"Serper request failed\" }}",
+              "type": "string"
+            },
+            {
+              "id": "497ba96e-625e-44e0-b253-a06e1c05f0c9",
+              "name": "status",
+              "value": "discovery_failed",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true
+      }
+    },
+    {
+      "id": "91403a91-24d8-4288-a44d-a21851dc4af0",
+      "name": "Handle OpenAI Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2320,
+        -200
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d664fbde-ba13-44ca-9d0b-31077a61bc66",
+              "name": "error_log",
+              "value": "={{ $json.error?.message || \"OpenAI analysis failed\" }}",
+              "type": "string"
+            },
+            {
+              "id": "16fa0f9a-d5c8-4692-bbbb-24997b6b655d",
+              "name": "status",
+              "value": "analysis_failed",
+              "type": "string"
+            },
+            {
+              "id": "39ef9181-4c47-4d72-978a-fca2216d01be",
+              "name": "ai_readiness_score",
+              "value": 40,
+              "type": "number"
+            },
+            {
+              "id": "2e076eb0-c4be-41d0-ad15-b515889a5096",
+              "name": "operational_complexity_score",
+              "value": 50,
+              "type": "number"
+            },
+            {
+              "id": "0c24c662-ecee-4bc5-b112-575077a6ab16",
+              "name": "buying_probability",
+              "value": 0.25,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true
+      }
+    },
+    {
+      "id": "cd200331-a9a1-4d5b-bc38-1957d13424fc",
+      "name": "Loop Discovery Batches",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -560
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return [{ json: { loop: true } }];"
+      }
+    },
+    {
+      "id": "491f90c5-4307-40f0-af07-aa40bc422d6a",
+      "name": "Run Follow-up Pass",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5200,
+        -400
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Build Dedup Index').first().json;\nreturn [{ json: { ...cfg, triggerFollowups: true } }];"
+      }
+    },
+    {
+      "id": "1940afa7-ae0c-488b-97a9-0c2895c69dc2",
+      "name": "Loop Scrape Batches",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3760,
+        -560
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return $input.all();"
+      }
+    },
+    {
+      "id": "08052e45-46e3-4044-a41e-f55318af4538",
+      "name": "NOTE Architecture",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3400,
+        -500
+      ],
+      "parameters": {
+        "content": "## CognixAI Unified Outbound Platform\n\nTriggers: Manual | Discovery cron (Mon/Wed/Fri 06:00) | Follow-up cron (daily 09:00)\n\nPipeline: Serper discovery -> Apify enrich (optional) -> Firecrawl scrape -> OpenAI analysis -> ICP score -> personalize -> Google Sheets -> Gmail outreach -> follow-ups (3/5/7 days via date filter)\n\nError branch: wire workflow Settings > Error Workflow to a clone containing only Error Trigger nodes, OR rely on inline continueOnFail paths.\n\nWindows env vars: SERPER_API_KEY, FIRECRAWL_API_KEY, OPENAI_API_KEY, APIFY_API_TOKEN (optional), COGNIX_LEADS_SHEET_ID, COGNIX_FROM_EMAIL, COGNIX_HIGH_INTENT_WEBHOOK_URL, COGNIX_ERROR_WEBHOOK_URL",
+        "height": 380,
+        "width": 520
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule - Discovery": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Schedule - Follow-ups": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge Triggers": {
+      "main": [
+        [
+          {
+            "node": "Workflow Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Config": {
+      "main": [
+        [
+          {
+            "node": "Detect Run Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Run Mode": {
+      "main": [
+        [
+          {
+            "node": "Route Run Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Run Mode": {
+      "main": [
+        [
+          {
+            "node": "Read Active Outreach Leads",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Existing Leads",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Existing Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Existing Leads": {
+      "main": [
+        [
+          {
+            "node": "Build Dedup Index",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Dedup Index": {
+      "main": [
+        [
+          {
+            "node": "Build Discovery Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Discovery Queries": {
+      "main": [
+        [
+          {
+            "node": "Split Discovery Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Discovery Batches": {
+      "main": [
+        [
+          {
+            "node": "Serper Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serper Search": {
+      "main": [
+        [
+          {
+            "node": "Wait Serper Rate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Serper Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Serper Rate Limit": {
+      "main": [
+        [
+          {
+            "node": "Parse Serper Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Serper Results": {
+      "main": [
+        [
+          {
+            "node": "IF More Serper Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF More Serper Pages": {
+      "main": [
+        [
+          {
+            "node": "Increment Serper Page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dedupe Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increment Serper Page": {
+      "main": [
+        [
+          {
+            "node": "Serper Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dedupe Companies": {
+      "main": [
+        [
+          {
+            "node": "IF Has New Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has New Companies": {
+      "main": [
+        [
+          {
+            "node": "Apify Optional Enrich",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Discovery Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify Optional Enrich": {
+      "main": [
+        [
+          {
+            "node": "Merge Apify Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Apify Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Split Scrape Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Scrape Batches": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl Homepage",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Leads For Outreach",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Homepage": {
+      "main": [
+        [
+          {
+            "node": "Wait Firecrawl Rate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Firecrawl Rate Limit": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl Careers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Careers": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Product": {
+      "main": [
+        [
+          {
+            "node": "Extract Scrape Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Scrape Signals": {
+      "main": [
+        [
+          {
+            "node": "Wait OpenAI Rate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait OpenAI Rate Limit": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Lead Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Lead Analysis": {
+      "main": [
+        [
+          {
+            "node": "IF OpenAI Analysis OK",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle OpenAI Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF OpenAI Analysis OK": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Analysis JSON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle OpenAI Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle OpenAI Error": {
+      "main": [
+        [
+          {
+            "node": "ICP Weighted Scoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Analysis JSON": {
+      "main": [
+        [
+          {
+            "node": "ICP Weighted Scoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ICP Weighted Scoring": {
+      "main": [
+        [
+          {
+            "node": "Route ICP Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route ICP Priority": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Personalization",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OpenAI Personalization",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Archive Low ICP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Personalization": {
+      "main": [
+        [
+          {
+            "node": "Parse Personalization JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Personalization JSON": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - Lead Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - Lead Record": {
+      "main": [
+        [
+          {
+            "node": "Merge Outreach Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archive Low ICP": {
+      "main": [
+        [
+          {
+            "node": "Merge Outreach Paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Outreach Paths": {
+      "main": [
+        [
+          {
+            "node": "Sheets Append Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Append Lead": {
+      "main": [
+        [
+          {
+            "node": "Loop Scrape Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Scrape Batches": {
+      "main": [
+        [
+          {
+            "node": "Split Scrape Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Leads For Outreach": {
+      "main": [
+        [
+          {
+            "node": "Filter Ready To Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Ready To Send": {
+      "main": [
+        [
+          {
+            "node": "Split Outreach Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Serper Error": {
+      "main": [
+        [
+          {
+            "node": "Loop Discovery Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Discovery Batches": {
+      "main": [
+        [
+          {
+            "node": "Split Discovery Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Outreach Batches": {
+      "main": [
+        [
+          {
+            "node": "IF Not Already Contacted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Run Follow-up Pass",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Not Already Contacted": {
+      "main": [
+        [
+          {
+            "node": "Gmail Send Initial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Send Initial": {
+      "main": [
+        [
+          {
+            "node": "Sheets Update Contacted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Update Contacted": {
+      "main": [
+        [
+          {
+            "node": "Split Outreach Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Active Outreach Leads": {
+      "main": [
+        [
+          {
+            "node": "Filter Follow-up Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Follow-up Candidates": {
+      "main": [
+        [
+          {
+            "node": "Split Follow-up Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Follow-up Batches": {
+      "main": [
+        [
+          {
+            "node": "Gmail Check Replies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Check Replies": {
+      "main": [
+        [
+          {
+            "node": "IF Reply Detected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Reply Detected": {
+      "main": [
+        [
+          {
+            "node": "Sheets Mark Replied",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch Follow-up Stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Mark Replied": {
+      "main": [
+        [
+          {
+            "node": "Route High Intent Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route High Intent Lead": {
+      "main": [
+        [
+          {
+            "node": "HTTP Alert High Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Follow-up Stage": {
+      "main": [
+        [
+          {
+            "node": "Gmail Send Follow-up 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail Send Follow-up 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail Send Breakup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Send Follow-up 1": {
+      "main": [
+        [
+          {
+            "node": "Sheets Update Follow-up 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Update Follow-up 1": {
+      "main": [
+        [
+          {
+            "node": "Split Follow-up Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Send Follow-up 2": {
+      "main": [
+        [
+          {
+            "node": "Sheets Update Follow-up 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Update Follow-up 2": {
+      "main": [
+        [
+          {
+            "node": "Split Follow-up Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Send Breakup": {
+      "main": [
+        [
+          {
+            "node": "Sheets Update Breakup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Update Breakup": {
+      "main": [
+        [
+          {
+            "node": "Split Follow-up Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Follow-up Pass": {
+      "main": [
+        [
+          {
+            "node": "Read Active Outreach Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Log Error Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Error Payload": {
+      "main": [
+        [
+          {
+            "node": "Sheets Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Log Error": {
+      "main": [
+        [
+          {
+            "node": "HTTP Error Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "timezone": "America/New_York"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "cognix-local-windows"
+  },
+  "tags": [
+    {
+      "name": "cognix"
+    },
+    {
+      "name": "outbound"
+    },
+    {
+      "name": "production"
+    }
+  ]
+}
