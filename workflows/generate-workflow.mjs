@@ -3,6 +3,34 @@ import { randomUUID } from 'crypto';
 
 const uid = () => randomUUID();
 
+const GEMINI_ENDPOINT =
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+const PARSE_GEMINI_HELPERS = `function extractGeminiText(payload) {
+  if (!payload || typeof payload !== 'object') return '';
+  const parts = payload.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts)) return '';
+  return parts.map((p) => p?.text || '').join('').trim();
+}
+function parseStrictJson(text) {
+  if (!text) return null;
+  let cleaned = String(text).trim();
+  if (cleaned.startsWith('\`\`\`')) {
+    cleaned = cleaned.replace(/^\\\`\\\`\\\`(?:json)?\\s*/i, '').replace(/\\\`\\\`\\\`\\s*$/, '').trim();
+  }
+  try {
+    return JSON.parse(cleaned);
+  } catch (_) {
+    const match = cleaned.match(/\\{[\\s\\S]*\\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch (_) {}
+    }
+  }
+  return null;
+}`;
+
 function node(name, type, position, parameters, extra = {}) {
   const versions = {
     'n8n-nodes-base.manualTrigger': 1,
@@ -18,7 +46,6 @@ function node(name, type, position, parameters, extra = {}) {
     'n8n-nodes-base.googleSheets': 4.5,
     'n8n-nodes-base.gmail': 2.1,
     'n8n-nodes-base.errorTrigger': 1,
-    'n8n-nodes-base.executeWorkflow': 1.2,
     'n8n-nodes-base.stickyNote': 1,
   };
   return {
@@ -33,13 +60,17 @@ function node(name, type, position, parameters, extra = {}) {
 }
 
 const retryOptions = {
-  retry: { enabled: true, maxTries: 3, waitBetween: 2000 },
+  retry: { enabled: true, maxTries: 3, waitBetween: 2500 },
   timeout: 120000,
 };
 
-const httpRetry = {
-  options: retryOptions,
+const geminiHeaders = {
+  parameters: [
+    { name: 'Content-Type', value: 'application/json' },
+  ],
 };
+
+const geminiUrlExpr = `={{ "${GEMINI_ENDPOINT}?key=" + $env.GEMINI_API_KEY }}`;
 
 const nodes = [];
 const connections = {};
@@ -53,23 +84,16 @@ const conn = (from, to, output = 0, input = 0) => {
 nodes.push(node('Manual Trigger', 'n8n-nodes-base.manualTrigger', [-3200, 0], {}));
 nodes.push(
   node('Schedule - Discovery', 'n8n-nodes-base.scheduleTrigger', [-3200, -200], {
-    rule: {
-      interval: [{ field: 'cronExpression', expression: '0 6 * * 1,3,5' }],
-    },
+    rule: { interval: [{ field: 'cronExpression', expression: '0 6 * * 1,3,5' }] },
   })
 );
 nodes.push(
   node('Schedule - Follow-ups', 'n8n-nodes-base.scheduleTrigger', [-3200, 200], {
-    rule: {
-      interval: [{ field: 'cronExpression', expression: '0 9 * * *' }],
-    },
+    rule: { interval: [{ field: 'cronExpression', expression: '0 9 * * *' }] },
   })
 );
 nodes.push(
-  node('Merge Triggers', 'n8n-nodes-base.merge', [-2960, 0], {
-    mode: 'append',
-    numberInputs: 3,
-  })
+  node('Merge Triggers', 'n8n-nodes-base.merge', [-2960, 0], { mode: 'append', numberInputs: 3 })
 );
 nodes.push(
   node('Workflow Config', 'n8n-nodes-base.set', [-2720, 0], {
@@ -81,17 +105,10 @@ nodes.push(
         {
           id: uid(),
           name: 'spreadsheetId',
-          value: "={{ $env.COGNIX_LEADS_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          value: "={{ $env.COGNIX_LEADS_SHEET_ID || '' }}",
           type: 'string',
         },
         { id: uid(), name: 'sheetName', value: 'Leads', type: 'string' },
-        {
-          id: uid(),
-          name: 'industries',
-          value:
-            '=["AI SaaS","B2B SaaS","recruitment agencies","workflow automation","operations-heavy B2B"]',
-          type: 'array',
-        },
         {
           id: uid(),
           name: 'serperQueries',
@@ -100,22 +117,38 @@ nodes.push(
           type: 'array',
         },
         { id: uid(), name: 'discoveryBatchSize', value: 5, type: 'number' },
-        { id: uid(), name: 'scrapeBatchSize', value: 3, type: 'number' },
-        { id: uid(), name: 'outreachBatchSize', value: 10, type: 'number' },
+        { id: uid(), name: 'scrapeBatchSize', value: 2, type: 'number' },
+        { id: uid(), name: 'outreachBatchSize', value: 5, type: 'number' },
+        { id: uid(), name: 'followupBatchSize', value: 5, type: 'number' },
         { id: uid(), name: 'serperWaitMs', value: 2000, type: 'number' },
         { id: uid(), name: 'firecrawlWaitMs', value: 3000, type: 'number' },
-        { id: uid(), name: 'openaiWaitMs', value: 1500, type: 'number' },
-        { id: uid(), name: 'fromEmail', value: "={{ $env.COGNIX_FROM_EMAIL || 'founder@cognixailabs.com' }}", type: 'string' },
+        { id: uid(), name: 'geminiWaitMs', value: 1200, type: 'number' },
+        { id: uid(), name: 'maxScrapeChars', value: 8000, type: 'number' },
+        {
+          id: uid(),
+          name: 'fromEmail',
+          value: "={{ $env.COGNIX_FROM_EMAIL || '' }}",
+          type: 'string',
+        },
         { id: uid(), name: 'senderName', value: 'CognixAI Labs', type: 'string' },
       ],
     },
     options: {},
+  }, {
+    notes:
+      'Set COGNIX_LEADS_SHEET_ID, GEMINI_API_KEY, SERPER_API_KEY, FIRECRAWL_API_KEY in Windows env. Restart n8n after changes.',
   })
 );
 nodes.push(
   node('Detect Run Mode', 'n8n-nodes-base.code', [-2480, 0], {
     mode: 'runOnceForAllItems',
     jsCode: `const config = $input.first().json;
+if (!config.spreadsheetId) {
+  throw new Error('COGNIX_LEADS_SHEET_ID is required. Set it in Workflow Config or environment variables.');
+}
+if (!$env.GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY is required for AI analysis and personalization.');
+}
 const discoveryRan = $('Schedule - Discovery').isExecuted;
 const followupsRan = $('Schedule - Follow-ups').isExecuted;
 const manualRan = $('Manual Trigger').isExecuted;
@@ -173,23 +206,38 @@ nodes.push(
     operation: 'read',
     documentId: { __rl: true, value: '={{ $json.spreadsheetId }}', mode: 'id' },
     sheetName: { __rl: true, value: '={{ $json.sheetName }}', mode: 'name' },
-    options: { rangeDefinition: 'specifyRange', range: 'A:Z' },
+    options: { rangeDefinition: 'specifyRange', range: 'A:AA' },
   })
 );
 nodes.push(
   node('Build Dedup Index', 'n8n-nodes-base.code', [-1760, -400], {
     mode: 'runOnceForAllItems',
     jsCode: `const config = $('Detect Run Mode').first().json;
-const rows = $input.all().map(i => i.json);
+const rows = $input.all().map((i) => i.json).filter((r) => r.lead_id || r.company_name);
 const seenDomains = new Set();
 const seenNames = new Set();
 for (const r of rows) {
-  const website = (r.website || r.Website || '').toString().toLowerCase().replace(/^https?:\\/\\//,'').replace(/\\/$/,'');
-  const name = (r.company_name || r['Company Name'] || '').toString().toLowerCase().trim();
+  const website = String(r.website || r.Website || '')
+    .toLowerCase()
+    .replace(/^https?:\\/\\//, '')
+    .replace(/\\/$/, '')
+    .split('/')[0];
+  const name = String(r.company_name || r['Company Name'] || '')
+    .toLowerCase()
+    .trim();
   if (website) seenDomains.add(website);
   if (name) seenNames.add(name);
 }
-return [{ json: { ...config, seenDomains: [...seenDomains], seenNames: [...seenNames], existingRows: rows } }];`,
+return [
+  {
+    json: {
+      ...config,
+      seenDomains: [...seenDomains],
+      seenNames: [...seenNames],
+      existingRowCount: rows.length,
+    },
+  },
+];`,
   })
 );
 
@@ -198,36 +246,34 @@ nodes.push(
   node('Build Discovery Queries', 'n8n-nodes-base.code', [-1520, -400], {
     mode: 'runOnceForAllItems',
     jsCode: `const cfg = $input.first().json;
-const queries = Array.isArray(cfg.serperQueries) ? cfg.serperQueries : JSON.parse(cfg.serperQueries || '[]');
+let queries = cfg.serperQueries;
+if (typeof queries === 'string') {
+  try { queries = JSON.parse(queries); } catch { queries = []; }
+}
+if (!Array.isArray(queries)) queries = [];
 const items = queries.map((q, idx) => ({
-  json: {
-    ...cfg,
-    searchQuery: q,
-    page: 1,
-    maxPages: 3,
-    queryIndex: idx,
-  },
+  json: { ...cfg, searchQuery: q, page: 1, maxPages: 3, queryIndex: idx },
 }));
-return items.length ? items : [{ json: { ...cfg, searchQuery: 'B2B SaaS AI automation company', page: 1, maxPages: 1, queryIndex: 0 } }];`,
+return items.length
+  ? items
+  : [{ json: { ...cfg, searchQuery: 'B2B SaaS AI automation company', page: 1, maxPages: 1, queryIndex: 0 } }];`,
   })
 );
 nodes.push(
   node('Split Discovery Batches', 'n8n-nodes-base.splitInBatches', [-1280, -400], {
     batchSize: '={{ $json.discoveryBatchSize || 5 }}',
-    options: {},
+    options: { reset: false },
   })
 );
 nodes.push(
   node('Serper Search', 'n8n-nodes-base.httpRequest', [-1040, -400], {
     method: 'POST',
     url: 'https://google.serper.dev/search',
-    authentication: 'genericCredentialType',
-    genericAuthType: 'httpHeaderAuth',
     sendHeaders: true,
     headerParameters: {
       parameters: [
         { name: 'Content-Type', value: 'application/json' },
-        { name: 'X-API-KEY', value: "={{ $env.SERPER_API_KEY }}" },
+        { name: 'X-API-KEY', value: '={{ $env.SERPER_API_KEY }}' },
       ],
     },
     sendBody: true,
@@ -235,41 +281,45 @@ nodes.push(
     jsonBody:
       '={{ JSON.stringify({ q: $json.searchQuery, num: 10, page: $json.page || 1, gl: "us", hl: "en" }) }}',
     options: retryOptions,
-  }, { onError: 'continueErrorOutput', notes: 'Serper company discovery. Credential: HTTP Header Auth with X-API-KEY or use env.' })
+  }, { onError: 'continueErrorOutput', notes: 'Requires SERPER_API_KEY env var.' })
 );
 nodes.push(
   node('Wait Serper Rate Limit', 'n8n-nodes-base.wait', [-800, -400], {
     resume: 'timeInterval',
-    amount: '={{ $("Build Discovery Queries").first().json.serperWaitMs || 2000 }}',
+    amount: '={{ $("Workflow Config").first().json.serperWaitMs || 2000 }}',
     unit: 'milliseconds',
   })
 );
 nodes.push(
   node('Parse Serper Results', 'n8n-nodes-base.code', [-560, -400], {
-    mode: 'runOnceForEachItem',
-    jsCode: `const src = $('Split Discovery Batches').item.json;
-const body = $input.item.json;
+    mode: 'runOnceForAllItems',
+    jsCode: `const src = $('Split Discovery Batches').first().json;
+const body = $input.first().json;
 const organic = body.organic || [];
-const companies = organic.map((r, i) => {
-  const link = r.link || '';
-  let website = link;
-  if (link.includes('linkedin.com')) website = (r.snippet || '').match(/https?:\\/\\/[^\\s)]+/)?.[0] || '';
-  const domain = website.replace(/^https?:\\/\\//,'').split('/')[0];
-  return {
-    lead_id: \`cognix_\${Date.now()}_\${src.queryIndex}_\${i}\`,
-    company_name: r.title?.split('|')[0]?.split('-')[0]?.trim() || r.title || 'Unknown Company',
-    website: website.startsWith('http') ? website : (domain ? \`https://\${domain}\` : ''),
-    linkedin_url: link.includes('linkedin.com') ? link : '',
-    description: r.snippet || '',
-    source_query: src.searchQuery,
-    discovery_page: src.page,
-    status: 'discovered',
-    outreach_stage: 'none',
-    reply_detected: false,
-    created_at: new Date().toISOString(),
-  };
-}).filter(c => c.company_name);
-return companies.map(json => ({ json }));`,
+const companies = organic
+  .map((r, i) => {
+    const link = r.link || '';
+    let website = link;
+    if (link.includes('linkedin.com')) {
+      website = (r.snippet || '').match(/https?:\\/\\/[^\\s)]+/)?.[0] || '';
+    }
+    const domain = website.replace(/^https?:\\/\\//, '').split('/')[0];
+    return {
+      lead_id: 'cognix_' + Date.now() + '_' + src.queryIndex + '_' + i,
+      company_name: (r.title || '').split('|')[0].split('-')[0].trim() || r.title || 'Unknown Company',
+      website: website.startsWith('http') ? website : domain ? 'https://' + domain : '',
+      linkedin_url: link.includes('linkedin.com') ? link : '',
+      description: r.snippet || '',
+      source_query: src.searchQuery,
+      discovery_page: src.page,
+      status: 'discovered',
+      outreach_stage: 'none',
+      reply_detected: false,
+      created_at: new Date().toISOString(),
+    };
+  })
+  .filter((c) => c.company_name);
+return companies.map((json) => ({ json }));`,
   })
 );
 nodes.push(
@@ -278,8 +328,8 @@ nodes.push(
       options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
       conditions: [
         {
-          leftValue: '={{ $("Split Discovery Batches").item.json.page }}',
-          rightValue: '={{ $("Split Discovery Batches").item.json.maxPages }}',
+          leftValue: '={{ $("Split Discovery Batches").first().json.page }}',
+          rightValue: '={{ $("Split Discovery Batches").first().json.maxPages }}',
           operator: { type: 'number', operation: 'lt' },
         },
       ],
@@ -295,7 +345,7 @@ nodes.push(
         {
           id: uid(),
           name: 'page',
-          value: '={{ $("Split Discovery Batches").item.json.page + 1 }}',
+          value: '={{ $("Split Discovery Batches").first().json.page + 1 }}',
           type: 'number',
         },
       ],
@@ -313,12 +363,19 @@ const unique = [];
 const localDomains = new Set();
 for (const item of $input.all()) {
   const c = item.json;
-  const domain = (c.website || '').toLowerCase().replace(/^https?:\\/\\//,'').replace(/\\/$/,'').split('/')[0];
-  const name = (c.company_name || '').toLowerCase().trim();
+  const domain = String(c.website || '')
+    .toLowerCase()
+    .replace(/^https?:\\/\\//, '')
+    .replace(/\\/$/, '')
+    .split('/')[0];
+  const name = String(c.company_name || '').toLowerCase().trim();
   if (!name) continue;
   if (domain && (seenDomains.has(domain) || localDomains.has(domain))) continue;
   if (seenNames.has(name)) continue;
-  if (domain) { localDomains.add(domain); seenDomains.add(domain); }
+  if (domain) {
+    localDomains.add(domain);
+    seenDomains.add(domain);
+  }
   seenNames.add(name);
   unique.push({ json: c });
 }
@@ -340,9 +397,23 @@ nodes.push(
     },
   })
 );
-
 nodes.push(
-  node('Apify Optional Enrich', 'n8n-nodes-base.httpRequest', [80, -400], {
+  node('IF Apify Enabled', 'n8n-nodes-base.if', [40, -400], {
+    conditions: {
+      options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' },
+      conditions: [
+        {
+          leftValue: '={{ $env.APIFY_API_TOKEN }}',
+          rightValue: '',
+          operator: { type: 'string', operation: 'notEmpty' },
+        },
+      ],
+      combinator: 'and',
+    },
+  }, { notes: 'Skips Apify when APIFY_API_TOKEN is not set.' })
+);
+nodes.push(
+  node('Apify Optional Enrich', 'n8n-nodes-base.httpRequest', [200, -480], {
     method: 'POST',
     url: 'https://api.apify.com/v2/acts/apify~google-search-scraper/run-sync-get-dataset-items',
     sendHeaders: true,
@@ -356,33 +427,63 @@ nodes.push(
     specifyBody: 'json',
     jsonBody:
       '={{ JSON.stringify({ queries: $json.company_name + " official website", maxPagesPerQuery: 1, resultsPerPage: 3 }) }}',
-    options: { ...retryOptions },
-  }, { onError: 'continueRegularOutput', notes: 'Optional enrichment when APIFY_API_TOKEN is set. On failure, passes through original company item.' })
+    options: retryOptions,
+  }, { onError: 'continueErrorOutput' })
 );
 nodes.push(
-  node('Merge Apify Enrichment', 'n8n-nodes-base.code', [120, -400], {
+  node('Skip Apify Pass-through', 'n8n-nodes-base.code', [200, -320], {
     mode: 'runOnceForEachItem',
-    jsCode: `const base = $('Dedupe Companies').all()[$itemIndex]?.json || {};
-const apify = $input.item.json;
+    jsCode: 'return { json: { ...$json, apify_enriched: false } };',
+  })
+);
+nodes.push(
+  node('Merge Apify Enrichment', 'n8n-nodes-base.code', [320, -400], {
+    mode: 'runOnceForEachItem',
+    jsCode: `const items = $('Dedupe Companies').all();
+const base = items[$itemIndex]?.json || $json;
+const apify = $input.first().json;
 let website = base.website;
 if (Array.isArray(apify) && apify[0]?.url) website = apify[0].url;
 if (apify?.organic?.[0]?.link) website = apify.organic[0].link;
-return { json: { ...base, website: website || base.website, apify_enriched: Boolean($env.APIFY_API_TOKEN) } };`,
+return { json: { ...base, website: website || base.website, apify_enriched: true } };`,
   })
+);
+nodes.push(
+  node('Merge Apify Skip', 'n8n-nodes-base.code', [320, -320], {
+    mode: 'runOnceForEachItem',
+    jsCode: 'return { json: $json };',
+  })
+);
+nodes.push(
+  node('Merge Enrich Paths', 'n8n-nodes-base.merge', [440, -400], { mode: 'append', numberInputs: 2 })
 );
 
-// ============ FIRECRAWL SCRAPING ============
+// ============ FIRECRAWL ============
 nodes.push(
-  node('Split Scrape Batches', 'n8n-nodes-base.splitInBatches', [160, -400], {
-    batchSize: '={{ $("Build Dedup Index").first().json.scrapeBatchSize || 3 }}',
+  node('Split Scrape Batches', 'n8n-nodes-base.splitInBatches', [560, -400], {
+    batchSize: '={{ $("Build Dedup Index").first().json.scrapeBatchSize || 2 }}',
+    options: { reset: false },
   })
 );
 nodes.push(
-  node('Firecrawl Homepage', 'n8n-nodes-base.httpRequest', [400, -400], {
+  node('Attach Lead Context', 'n8n-nodes-base.code', [720, -400], {
+    mode: 'runOnceForEachItem',
+    jsCode: `const cfg = $('Build Dedup Index').first().json;
+const lead = $json;
+return {
+  json: {
+    ...cfg,
+    ...lead,
+    _lead_ref: lead.lead_id,
+    website: lead.website || '',
+  },
+};`,
+  })
+);
+nodes.push(
+  node('Firecrawl Homepage', 'n8n-nodes-base.httpRequest', [920, -400], {
     method: 'POST',
     url: 'https://api.firecrawl.dev/v1/scrape',
-    authentication: 'genericCredentialType',
-    genericAuthType: 'httpHeaderAuth',
     sendHeaders: true,
     headerParameters: {
       parameters: [
@@ -393,19 +494,19 @@ nodes.push(
     sendBody: true,
     specifyBody: 'json',
     jsonBody:
-      '={{ JSON.stringify({ url: $json.website, formats: ["markdown"], onlyMainContent: true, timeout: 60000 }) }}',
+      '={{ JSON.stringify({ url: $("Attach Lead Context").first().json.website, formats: ["markdown"], onlyMainContent: true, timeout: 60000 }) }}',
     options: retryOptions,
   }, { onError: 'continueErrorOutput' })
 );
 nodes.push(
-  node('Wait Firecrawl Rate Limit', 'n8n-nodes-base.wait', [640, -400], {
+  node('Wait Firecrawl Rate Limit', 'n8n-nodes-base.wait', [1160, -400], {
     resume: 'timeInterval',
-    amount: '={{ $("Build Dedup Index").first().json.firecrawlWaitMs || 3000 }}',
+    amount: '={{ $("Workflow Config").first().json.firecrawlWaitMs || 3000 }}',
     unit: 'milliseconds',
   })
 );
 nodes.push(
-  node('Firecrawl Careers', 'n8n-nodes-base.httpRequest', [880, -400], {
+  node('Firecrawl Careers', 'n8n-nodes-base.httpRequest', [1400, -400], {
     method: 'POST',
     url: 'https://api.firecrawl.dev/v1/scrape',
     sendHeaders: true,
@@ -417,13 +518,17 @@ nodes.push(
     },
     sendBody: true,
     specifyBody: 'json',
-    jsonBody:
-      '={{ JSON.stringify({ url: ($json.website || "").replace(/\\/$/,"") + "/careers", formats: ["markdown"], onlyMainContent: true, timeout: 60000 }) }}',
+    jsonBody: `={{ JSON.stringify({
+  url: ($("Attach Lead Context").first().json.website || "").replace(/\\/$/, "") + "/careers",
+  formats: ["markdown"],
+  onlyMainContent: true,
+  timeout: 60000
+}) }}`,
     options: retryOptions,
   }, { onError: 'continueErrorOutput' })
 );
 nodes.push(
-  node('Firecrawl Product', 'n8n-nodes-base.httpRequest', [1120, -400], {
+  node('Firecrawl Product', 'n8n-nodes-base.httpRequest', [1640, -400], {
     method: 'POST',
     url: 'https://api.firecrawl.dev/v1/scrape',
     sendHeaders: true,
@@ -435,81 +540,93 @@ nodes.push(
     },
     sendBody: true,
     specifyBody: 'json',
-    jsonBody:
-      '={{ JSON.stringify({ url: ($json.website || "").replace(/\\/$/,"") + "/product", formats: ["markdown"], onlyMainContent: true, timeout: 60000 }) }}',
+    jsonBody: `={{ JSON.stringify({
+  url: ($("Attach Lead Context").first().json.website || "").replace(/\\/$/, "") + "/product",
+  formats: ["markdown"],
+  onlyMainContent: true,
+  timeout: 60000
+}) }}`,
     options: retryOptions,
   }, { onError: 'continueErrorOutput' })
 );
 nodes.push(
-  node('Extract Scrape Signals', 'n8n-nodes-base.code', [1360, -400], {
+  node('Extract Scrape Signals', 'n8n-nodes-base.code', [1880, -400], {
     mode: 'runOnceForEachItem',
-    jsCode: `const company = $('Split Scrape Batches').item.json;
-const homepage = $('Firecrawl Homepage').item.json?.data?.markdown || $('Firecrawl Homepage').item.json?.markdown || '';
-const careers = $('Firecrawl Careers').item.json?.data?.markdown || '';
-const product = $('Firecrawl Product').item.json?.markdown || $('Firecrawl Product').item.json?.data?.markdown || '';
+    jsCode: `const company = $('Attach Lead Context').first().json;
+const maxChars = Number(company.maxScrapeChars) || 8000;
+const slice = (v) => String(v || '').slice(0, maxChars);
+const homepage =
+  $('Firecrawl Homepage').first().json?.data?.markdown ||
+  $('Firecrawl Homepage').first().json?.markdown ||
+  '';
+const careers = $('Firecrawl Careers').first().json?.data?.markdown || '';
+const product =
+  $('Firecrawl Product').first().json?.data?.markdown ||
+  $('Firecrawl Product').first().json?.markdown ||
+  '';
 const combined = [homepage, careers, product].join('\\n').toLowerCase();
 const count = (term) => (combined.match(new RegExp(term, 'gi')) || []).length;
 return {
   json: {
-    ...company,
-    scraped_homepage: homepage.slice(0, 12000),
-    scraped_careers: careers.slice(0, 8000),
-    scraped_product: product.slice(0, 8000),
+    lead_id: company.lead_id,
+    company_name: company.company_name,
+    website: company.website,
+    linkedin_url: company.linkedin_url,
+    description: company.description,
+    source_query: company.source_query,
+    scraped_homepage: slice(homepage),
+    scraped_careers: slice(careers),
+    scraped_product: slice(product),
     signals: {
-      ai_mentions: count('\\\\b(ai|artificial intelligence|llm|gpt|machine learning)\\\\b'),
+      ai_mentions: count('\\\\b(ai|artificial intelligence|llm|gemini|machine learning)\\\\b'),
       automation_mentions: count('\\\\b(automation|automate|workflow|orchestrat)\\\\b'),
-      hiring_mentions: count('\\\\b(hiring|careers|open roles|we\\\\'re hiring)\\\\b'),
+      hiring_mentions: count('\\\\b(hiring|careers|open roles)\\\\b'),
       support_mentions: count('\\\\b(support|customer success|helpdesk|ticket)\\\\b'),
     },
     status: 'scraped',
+    outreach_stage: company.outreach_stage || 'none',
+    reply_detected: false,
+    created_at: company.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
 };`,
   })
 );
 
-// ============ OPENAI ANALYSIS ============
+// ============ GEMINI ANALYSIS ============
 nodes.push(
-  node('Wait OpenAI Rate Limit', 'n8n-nodes-base.wait', [1600, -400], {
+  node('Wait Gemini Rate Limit', 'n8n-nodes-base.wait', [2120, -400], {
     resume: 'timeInterval',
-    amount: '={{ $("Build Dedup Index").first().json.openaiWaitMs || 1500 }}',
+    amount: '={{ $("Workflow Config").first().json.geminiWaitMs || 1200 }}',
     unit: 'milliseconds',
   })
 );
 nodes.push(
-  node('OpenAI Lead Analysis', 'n8n-nodes-base.httpRequest', [1840, -400], {
+  node('Gemini Lead Analysis', 'n8n-nodes-base.httpRequest', [2360, -400], {
     method: 'POST',
-    url: 'https://api.openai.com/v1/chat/completions',
-    authentication: 'genericCredentialType',
-    genericAuthType: 'httpHeaderAuth',
+    url: geminiUrlExpr,
     sendHeaders: true,
-    headerParameters: {
-      parameters: [
-        { name: 'Content-Type', value: 'application/json' },
-        { name: 'Authorization', value: '={{ "Bearer " + $env.OPENAI_API_KEY }}' },
-      ],
-    },
+    headerParameters: geminiHeaders,
     sendBody: true,
     specifyBody: 'json',
     jsonBody: `={{ JSON.stringify({
-  model: "gpt-4o-mini",
-  temperature: 0.2,
-  response_format: { type: "json_object" },
-  messages: [
-    { role: "system", content: "You are a B2B GTM analyst for CognixAI Labs. Return STRICT JSON only with keys: ai_readiness_score, operational_complexity_score, buying_probability, likely_pain_points, workflow_complexity, internal_tooling_needs, onboarding_complexity, support_burden, scaling_signals, summary." },
-    { role: "user", content: "Company: " + $json.company_name + "\\nWebsite: " + $json.website + "\\nDescription: " + $json.description + "\\nSignals: " + JSON.stringify($json.signals) + "\\nHomepage excerpt: " + ($json.scraped_homepage || "").slice(0, 4000) + "\\nCareers excerpt: " + ($json.scraped_careers || "").slice(0, 2500) }
-  ]
+  contents: [{
+    parts: [{
+      text: "You are a B2B GTM analyst for CognixAI Labs. Return STRICT JSON only with keys: ai_readiness_score, operational_complexity_score, buying_probability, likely_pain_points, workflow_complexity, internal_tooling_needs, onboarding_complexity, support_burden, scaling_signals, summary. No markdown.\\n\\nCompany: " + $json.company_name + "\\nWebsite: " + $json.website + "\\nDescription: " + ($json.description || "") + "\\nSignals: " + JSON.stringify($json.signals || {}) + "\\nHomepage: " + ($json.scraped_homepage || "").slice(0, 3500) + "\\nCareers: " + ($json.scraped_careers || "").slice(0, 2000)
+    }]
+  }],
+  generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
 }) }}`,
     options: retryOptions,
-  }, { onError: 'continueErrorOutput' })
+  }, { onError: 'continueErrorOutput', notes: 'Gemini 2.0 Flash via GEMINI_API_KEY query param.' })
 );
 nodes.push(
-  node('IF OpenAI Analysis OK', 'n8n-nodes-base.if', [2080, -400], {
+  node('IF Gemini Analysis OK', 'n8n-nodes-base.if', [2600, -400], {
     conditions: {
       options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' },
       conditions: [
         {
-          leftValue: '={{ $json.choices?.[0]?.message?.content }}',
+          leftValue: '={{ $json.candidates?.[0]?.content?.parts?.[0]?.text }}',
           rightValue: '',
           operator: { type: 'string', operation: 'notEmpty' },
         },
@@ -519,31 +636,57 @@ nodes.push(
   })
 );
 nodes.push(
-  node('Parse AI Analysis JSON', 'n8n-nodes-base.code', [2320, -400], {
+  node('Parse AI Analysis JSON', 'n8n-nodes-base.code', [2840, -400], {
     mode: 'runOnceForEachItem',
-    jsCode: `const lead = $('Extract Scrape Signals').item.json;
-const content = $input.item.json.choices?.[0]?.message?.content || '{}';
-let analysis = {};
-try { analysis = JSON.parse(content); } catch (e) {
-  analysis = { summary: content, ai_readiness_score: 50, operational_complexity_score: 50, buying_probability: 0.3 };
+    jsCode: `${PARSE_GEMINI_HELPERS}
+const lead = $('Extract Scrape Signals').first().json;
+const text = extractGeminiText($input.first().json);
+let analysis = parseStrictJson(text);
+if (!analysis || typeof analysis !== 'object') {
+  analysis = {
+    summary: text || 'Analysis parse fallback',
+    ai_readiness_score: 50,
+    operational_complexity_score: 50,
+    buying_probability: 0.3,
+    likely_pain_points: [],
+  };
 }
-return { json: { ...lead, ...analysis, status: 'analyzed', updated_at: new Date().toISOString() } };`,
+return {
+  json: {
+    ...lead,
+    ...analysis,
+    status: 'analyzed',
+    updated_at: new Date().toISOString(),
+  },
+};`,
   })
 );
 nodes.push(
-  node('ICP Weighted Scoring', 'n8n-nodes-base.code', [2560, -400], {
+  node('Handle Gemini Analysis Error', 'n8n-nodes-base.code', [2840, -200], {
     mode: 'runOnceForEachItem',
-    jsCode: `const l = $input.item.json;
+    jsCode: `const lead = $('Extract Scrape Signals').first().json;
+const errMsg = $json.error?.message || $json.message || 'Gemini analysis failed';
+return {
+  json: {
+    ...lead,
+    error_log: errMsg,
+    status: 'analysis_failed',
+    ai_readiness_score: 40,
+    operational_complexity_score: 50,
+    buying_probability: 0.25,
+    likely_pain_points: [],
+    summary: 'Fallback scoring applied after Gemini error',
+    updated_at: new Date().toISOString(),
+  },
+};`,
+  })
+);
+nodes.push(
+  node('ICP Weighted Scoring', 'n8n-nodes-base.code', [3080, -400], {
+    mode: 'runOnceForEachItem',
+    jsCode: `const l = $input.first().json;
 const s = l.signals || {};
-const weights = {
-  ai: 0.2,
-  automation: 0.15,
-  hiring: 0.15,
-  support: 0.1,
-  ai_readiness: 0.15,
-  complexity: 0.1,
-  buying: 0.15,
-};
+const weights = { ai: 0.2, automation: 0.15, hiring: 0.15, support: 0.1, ai_readiness: 0.15, complexity: 0.1, buying: 0.15 };
 const norm = (v, max = 10) => Math.min(100, (Number(v) || 0) / max * 100);
 const score =
   norm(s.ai_mentions) * weights.ai +
@@ -557,13 +700,12 @@ const icp_score = Math.round(Math.min(100, Math.max(0, score)));
 let priority = 'low';
 if (icp_score >= 75) priority = 'high';
 else if (icp_score >= 50) priority = 'medium';
-const route = priority === 'high' ? 'immediate_outreach' : priority === 'medium' ? 'nurture' : 'archive';
 return {
   json: {
     ...l,
     icp_score,
     priority,
-    route,
+    route: priority === 'high' ? 'immediate_outreach' : priority === 'medium' ? 'nurture' : 'archive',
     lead_quality: priority,
     status: priority === 'low' ? 'archived' : 'scored',
     updated_at: new Date().toISOString(),
@@ -572,7 +714,7 @@ return {
   })
 );
 nodes.push(
-  node('Route ICP Priority', 'n8n-nodes-base.switch', [2800, -400], {
+  node('Route ICP Priority', 'n8n-nodes-base.switch', [3320, -400], {
     mode: 'rules',
     rules: {
       values: [
@@ -604,39 +746,57 @@ nodes.push(
   })
 );
 
-// ============ PERSONALIZATION ============
+// ============ GEMINI PERSONALIZATION ============
 nodes.push(
-  node('OpenAI Personalization', 'n8n-nodes-base.httpRequest', [3040, -560], {
+  node('Wait Gemini Personalize', 'n8n-nodes-base.wait', [3560, -560], {
+    resume: 'timeInterval',
+    amount: '={{ $("Workflow Config").first().json.geminiWaitMs || 1200 }}',
+    unit: 'milliseconds',
+  })
+);
+nodes.push(
+  node('Gemini Personalization', 'n8n-nodes-base.httpRequest', [3800, -560], {
     method: 'POST',
-    url: 'https://api.openai.com/v1/chat/completions',
+    url: geminiUrlExpr,
     sendHeaders: true,
-    headerParameters: {
-      parameters: [
-        { name: 'Content-Type', value: 'application/json' },
-        { name: 'Authorization', value: '={{ "Bearer " + $env.OPENAI_API_KEY }}' },
-      ],
-    },
+    headerParameters: geminiHeaders,
     sendBody: true,
     specifyBody: 'json',
     jsonBody: `={{ JSON.stringify({
-  model: "gpt-4o-mini",
-  temperature: 0.7,
-  response_format: { type: "json_object" },
-  messages: [
-    { role: "system", content: "Write founder-level, human, non-salesy outreach for CognixAI Labs. Return STRICT JSON: linkedin_opener, email_subject, email_body, followup_1, followup_2, breakup_email, personalization_notes. Max 120 words per email. Operationally intelligent tone." },
-    { role: "user", content: JSON.stringify({ company_name: $json.company_name, website: $json.website, pain_points: $json.likely_pain_points, icp_score: $json.icp_score, summary: $json.summary }) }
-  ]
+  contents: [{
+    parts: [{
+      text: "Write founder-level, human, non-salesy outreach for CognixAI Labs. Return STRICT JSON only with keys: linkedin_opener, email_subject, email_body, followup_1, followup_2, breakup_email, personalization_notes. Max 120 words per email. No markdown fences.\\n\\nLead context: " + JSON.stringify({
+        company_name: $json.company_name,
+        website: $json.website,
+        pain_points: $json.likely_pain_points,
+        icp_score: $json.icp_score,
+        summary: $json.summary
+      })
+    }]
+  }],
+  generationConfig: { temperature: 0.65, responseMimeType: "application/json" }
 }) }}`,
     options: retryOptions,
   }, { onError: 'continueErrorOutput' })
 );
 nodes.push(
-  node('Parse Personalization JSON', 'n8n-nodes-base.code', [3280, -560], {
+  node('Parse Personalization JSON', 'n8n-nodes-base.code', [4040, -560], {
     mode: 'runOnceForEachItem',
-    jsCode: `const lead = $('ICP Weighted Scoring').item.json;
-const content = $input.item.json.choices?.[0]?.message?.content || '{}';
-let copy = {};
-try { copy = JSON.parse(content); } catch (e) { copy = { email_subject: 'Quick idea for ' + lead.company_name, email_body: content }; }
+    jsCode: `${PARSE_GEMINI_HELPERS}
+const lead = $('ICP Weighted Scoring').first().json;
+const text = extractGeminiText($input.first().json);
+let copy = parseStrictJson(text);
+if (!copy || typeof copy !== 'object') {
+  copy = {
+    email_subject: 'Quick idea for ' + (lead.company_name || 'your team'),
+    email_body: text || 'Hi — noticed operational complexity scaling at your company. Worth a brief chat?',
+    followup_1: 'Following up in case this landed at a busy time.',
+    followup_2: 'Last nudge — happy to share how similar teams reduced ops load.',
+    breakup_email: 'Closing the loop — reach out anytime if timing improves.',
+    linkedin_opener: 'Noticed your team scaling ops — curious how you handle workflow load.',
+    personalization_notes: 'Gemini parse fallback used',
+  };
+}
 return {
   json: {
     ...lead,
@@ -649,25 +809,48 @@ return {
   })
 );
 nodes.push(
-  node('Edit Fields - Lead Record', 'n8n-nodes-base.set', [3400, -560], {
+  node('Handle Gemini Personalize Error', 'n8n-nodes-base.code', [4040, -420], {
+    mode: 'runOnceForEachItem',
+    jsCode: `const lead = $('ICP Weighted Scoring').first().json;
+return {
+  json: {
+    ...lead,
+    email_subject: 'Ops question for ' + (lead.company_name || 'your team'),
+    email_body: 'Hi — sharing a quick thought on reducing workflow overhead for teams like yours.',
+    outreach_stage: lead.priority === 'high' ? 'ready_to_send' : 'nurture_queued',
+    status: 'personalized_fallback',
+    error_log: $json.error?.message || 'Gemini personalization failed',
+    updated_at: new Date().toISOString(),
+  },
+};`,
+  })
+);
+nodes.push(
+  node('Edit Fields - Lead Record', 'n8n-nodes-base.set', [4280, -560], {
     mode: 'manual',
     includeOtherFields: true,
     assignments: {
       assignments: [
-        { id: uid(), name: 'contact_email', value: "={{ $json.contact_email || 'hello@' + ($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0] }}", type: 'string' },
-        { id: uid(), name: 'route', value: '={{ $json.priority === "high" ? "immediate_outreach" : ($json.priority === "medium" ? "nurture" : "archive") }}', type: 'string' },
+        {
+          id: uid(),
+          name: 'contact_email',
+          value:
+            "={{ $json.contact_email || ('hello@' + String($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0]) }}",
+          type: 'string',
+        },
+        {
+          id: uid(),
+          name: 'route',
+          value:
+            '={{ $json.priority === "high" ? "immediate_outreach" : ($json.priority === "medium" ? "nurture" : "archive") }}',
+          type: 'string',
+        },
       ],
     },
   })
 );
 nodes.push(
-  node('Merge Outreach Paths', 'n8n-nodes-base.merge', [3520, -400], {
-    mode: 'append',
-    numberInputs: 2,
-  })
-);
-nodes.push(
-  node('Archive Low ICP', 'n8n-nodes-base.set', [3040, -240], {
+  node('Archive Low ICP', 'n8n-nodes-base.set', [3560, -240], {
     mode: 'manual',
     assignments: {
       assignments: [
@@ -678,10 +861,11 @@ nodes.push(
     includeOtherFields: true,
   })
 );
-
-// ============ GOOGLE SHEETS UPSERT ============
 nodes.push(
-  node('Sheets Append Lead', 'n8n-nodes-base.googleSheets', [3760, -400], {
+  node('Merge Outreach Paths', 'n8n-nodes-base.merge', [4520, -400], { mode: 'append', numberInputs: 2 })
+);
+nodes.push(
+  node('Sheets Append Lead', 'n8n-nodes-base.googleSheets', [4760, -400], {
     operation: 'append',
     documentId: { __rl: true, value: '={{ $("Build Dedup Index").first().json.spreadsheetId }}', mode: 'id' },
     sheetName: { __rl: true, value: '={{ $("Build Dedup Index").first().json.sheetName }}', mode: 'name' },
@@ -693,6 +877,7 @@ nodes.push(
         website: '={{ $json.website }}',
         linkedin_url: '={{ $json.linkedin_url }}',
         description: '={{ $json.description }}',
+        contact_email: '={{ $json.contact_email }}',
         icp_score: '={{ $json.icp_score }}',
         priority: '={{ $json.priority }}',
         lead_quality: '={{ $json.lead_quality }}',
@@ -719,44 +904,52 @@ nodes.push(
   })
 );
 
-// ============ OUTREACH SEND ============
+// ============ OUTREACH ============
 nodes.push(
-  node('Read Leads For Outreach', 'n8n-nodes-base.googleSheets', [4000, -400], {
-    operation: 'read',
-    documentId: { __rl: true, value: '={{ $("Build Dedup Index").first().json.spreadsheetId }}', mode: 'id' },
-    sheetName: { __rl: true, value: '={{ $("Build Dedup Index").first().json.sheetName }}', mode: 'name' },
-    options: { rangeDefinition: 'specifyRange', range: 'A:Z' },
+  node('Loop Scrape Batches', 'n8n-nodes-base.code', [5000, -400], {
+    mode: 'runOnceForAllItems',
+    jsCode: 'return [{ json: { batch_continue: true } }];',
   })
 );
 nodes.push(
-  node('Filter Ready To Send', 'n8n-nodes-base.code', [4120, -400], {
+  node('Read Leads For Outreach', 'n8n-nodes-base.googleSheets', [5240, -400], {
+    operation: 'read',
+    documentId: { __rl: true, value: '={{ $("Build Dedup Index").first().json.spreadsheetId }}', mode: 'id' },
+    sheetName: { __rl: true, value: '={{ $("Build Dedup Index").first().json.sheetName }}', mode: 'name' },
+    options: { rangeDefinition: 'specifyRange', range: 'A:AA' },
+  })
+);
+nodes.push(
+  node('Filter Ready To Send', 'n8n-nodes-base.code', [5480, -400], {
     mode: 'runOnceForAllItems',
-    jsCode: `return $input.all().filter(i => {
+    jsCode: `return $input.all().filter((i) => {
   const r = i.json;
-  const stage = (r.outreach_stage || r['outreach_stage'] || '').toString();
+  const stage = String(r.outreach_stage || r['outreach_stage'] || '');
   const replied = r.reply_detected === true || r.reply_detected === 'TRUE';
   const last = r.last_contacted || r['last_contacted'] || '';
-  return stage === 'ready_to_send' && !replied && !last;
+  const email = r.contact_email || r['contact_email'] || '';
+  return stage === 'ready_to_send' && !replied && !last && String(email).includes('@');
 });`,
   })
 );
 nodes.push(
-  node('Split Outreach Batches', 'n8n-nodes-base.splitInBatches', [4240, -400], {
-    batchSize: '={{ $("Build Dedup Index").first().json.outreachBatchSize || 10 }}',
+  node('Split Outreach Batches', 'n8n-nodes-base.splitInBatches', [5720, -400], {
+    batchSize: '={{ $("Build Dedup Index").first().json.outreachBatchSize || 5 }}',
+    options: { reset: false },
   })
 );
 nodes.push(
-  node('IF Not Already Contacted', 'n8n-nodes-base.if', [4480, -400], {
+  node('IF Not Already Contacted', 'n8n-nodes-base.if', [5960, -400], {
     conditions: {
       options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' },
       conditions: [
         {
-          leftValue: '={{ $json.last_contacted || $json["last_contacted"] || "" }}',
+          leftValue: '={{ String($json.last_contacted || $json["last_contacted"] || "") }}',
           rightValue: '',
           operator: { type: 'string', operation: 'empty' },
         },
         {
-          leftValue: '={{ $json.reply_detected || $json["reply_detected"] }}',
+          leftValue: '={{ $json.reply_detected === true || $json.reply_detected === "TRUE" }}',
           rightValue: true,
           operator: { type: 'boolean', operation: 'notEquals' },
         },
@@ -766,21 +959,21 @@ nodes.push(
   })
 );
 nodes.push(
-  node('Gmail Send Initial', 'n8n-nodes-base.gmail', [4720, -480], {
+  node('Gmail Send Initial', 'n8n-nodes-base.gmail', [6200, -480], {
     resource: 'message',
     operation: 'send',
-    sendTo: "={{ $json.contact_email || $env.COGNIX_DEFAULT_CONTACT_EMAIL || 'ops@' + ($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0] }}",
-    subject: '={{ $json.email_subject || ("Question about ops at " + ($json.company_name || $json["company_name"])) }}',
+    sendTo: '={{ $json.contact_email || $json["contact_email"] }}',
+    subject: '={{ $json.email_subject || ("Question about ops at " + ($json.company_name || "")) }}',
     emailType: 'text',
     message: '={{ $json.email_body || $json["email_body"] }}',
     options: {
-      senderName: '={{ $("Build Dedup Index").first().json.senderName }}',
-      replyTo: '={{ $("Build Dedup Index").first().json.fromEmail }}',
+      senderName: '={{ $("Workflow Config").first().json.senderName }}',
+      replyTo: '={{ $("Workflow Config").first().json.fromEmail }}',
     },
   })
 );
 nodes.push(
-  node('Sheets Update Contacted', 'n8n-nodes-base.googleSheets', [4960, -480], {
+  node('Sheets Update Contacted', 'n8n-nodes-base.googleSheets', [6440, -480], {
     operation: 'update',
     documentId: { __rl: true, value: '={{ $("Build Dedup Index").first().json.spreadsheetId }}', mode: 'id' },
     sheetName: { __rl: true, value: '={{ $("Build Dedup Index").first().json.sheetName }}', mode: 'name' },
@@ -797,14 +990,20 @@ nodes.push(
     options: { cellFormat: 'USER_ENTERED' },
   })
 );
+nodes.push(
+  node('Run Follow-up Pass', 'n8n-nodes-base.code', [6680, -400], {
+    mode: 'runOnceForAllItems',
+    jsCode: `return [{ json: { ...$('Build Dedup Index').first().json, triggerFollowups: true } }];`,
+  })
+);
 
-// ============ FOLLOW-UP AUTOMATION ============
+// ============ FOLLOW-UPS ============
 nodes.push(
   node('Read Active Outreach Leads', 'n8n-nodes-base.googleSheets', [-2000, 400], {
     operation: 'read',
     documentId: { __rl: true, value: '={{ $json.spreadsheetId }}', mode: 'id' },
     sheetName: { __rl: true, value: '={{ $json.sheetName }}', mode: 'name' },
-    options: { rangeDefinition: 'specifyRange', range: 'A:Z' },
+    options: { rangeDefinition: 'specifyRange', range: 'A:AA' },
   })
 );
 nodes.push(
@@ -813,23 +1012,26 @@ nodes.push(
     jsCode: `const cfg = $('Detect Run Mode').first().json;
 const now = Date.now();
 const day = 86400000;
-const items = $input.all().map(i => i.json).filter(r => {
+const items = $input.all().map((i) => i.json).filter((r) => {
   if (r.reply_detected === true || r.reply_detected === 'TRUE') return false;
-  const stage = (r.outreach_stage || '').toString();
-  if (!['initial_sent','followup_1_sent','followup_2_sent'].includes(stage)) return false;
+  const stage = String(r.outreach_stage || '');
+  if (!['initial_sent', 'followup_1_sent', 'followup_2_sent'].includes(stage)) return false;
   const last = Date.parse(r.last_contacted || r.updated_at || 0);
   if (!last) return false;
+  const email = String(r.contact_email || r['contact_email'] || '');
+  if (!email.includes('@')) return false;
   if (stage === 'initial_sent' && now - last >= 3 * day) return true;
   if (stage === 'followup_1_sent' && now - last >= 5 * day) return true;
   if (stage === 'followup_2_sent' && now - last >= 7 * day) return true;
   return false;
 });
-return items.map(json => ({ json: { ...cfg, ...json } }));`,
+return items.map((json) => ({ json: { ...cfg, ...json } }));`,
   })
 );
 nodes.push(
   node('Split Follow-up Batches', 'n8n-nodes-base.splitInBatches', [-1520, 400], {
-    batchSize: 5,
+    batchSize: '={{ $("Workflow Config").first().json.followupBatchSize || 5 }}',
+    options: { reset: false },
   })
 );
 nodes.push(
@@ -839,7 +1041,7 @@ nodes.push(
     returnAll: false,
     limit: 5,
     filters: {
-      q: '={{ "from:" + ($json.contact_email || "") + " newer_than:14d in:inbox" }}',
+      q: '={{ "from:" + String($json.contact_email || $json["contact_email"] || "").trim() + " newer_than:14d in:inbox" }}',
     },
   })
 );
@@ -861,8 +1063,16 @@ nodes.push(
 nodes.push(
   node('Sheets Mark Replied', 'n8n-nodes-base.googleSheets', [-800, 280], {
     operation: 'update',
-    documentId: { __rl: true, value: '={{ $("Split Follow-up Batches").item.json.spreadsheetId }}', mode: 'id' },
-    sheetName: { __rl: true, value: '={{ $("Split Follow-up Batches").item.json.sheetName }}', mode: 'name' },
+    documentId: {
+      __rl: true,
+      value: '={{ $("Split Follow-up Batches").first().json.spreadsheetId }}',
+      mode: 'id',
+    },
+    sheetName: {
+      __rl: true,
+      value: '={{ $("Split Follow-up Batches").first().json.sheetName }}',
+      mode: 'name',
+    },
     columns: {
       mappingMode: 'defineBelow',
       value: {
@@ -877,25 +1087,43 @@ nodes.push(
   })
 );
 nodes.push(
-  node('Route High Intent Lead', 'n8n-nodes-base.set', [-560, 280], {
-    mode: 'manual',
-    assignments: {
-      assignments: [
-        { id: uid(), name: 'route_target', value: 'founder_slack_webhook', type: 'string' },
-        { id: uid(), name: 'alert_message', value: '={{ "High-intent reply from " + $json.company_name }}', type: 'string' },
-      ],
-    },
-    includeOtherFields: true,
-  })
+  node('Log High Intent Reply', 'n8n-nodes-base.code', [-560, 200], {
+    mode: 'runOnceForEachItem',
+    jsCode: `const lead = $('Split Follow-up Batches').first().json;
+return {
+  json: {
+    ...lead,
+    alert_logged: true,
+    alert_message: 'High-intent reply from ' + (lead.company_name || lead.lead_id),
+    alert_channel: 'sheets_and_execution_log',
+    logged_at: new Date().toISOString(),
+  },
+};`,
+  }, { notes: 'Default high-intent handling. No webhook required.' })
 );
 nodes.push(
-  node('HTTP Alert High Intent', 'n8n-nodes-base.httpRequest', [-320, 280], {
+  node('IF High Intent Webhook Enabled', 'n8n-nodes-base.if', [-560, 360], {
+    conditions: {
+      options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' },
+      conditions: [
+        {
+          leftValue: '={{ $env.COGNIX_HIGH_INTENT_WEBHOOK_URL }}',
+          rightValue: '',
+          operator: { type: 'string', operation: 'notEmpty' },
+        },
+      ],
+      combinator: 'and',
+    },
+  }, { notes: 'Optional. Set COGNIX_HIGH_INTENT_WEBHOOK_URL to POST alerts.' })
+);
+nodes.push(
+  node('HTTP Alert High Intent', 'n8n-nodes-base.httpRequest', [-320, 360], {
     method: 'POST',
-    url: "={{ $env.COGNIX_HIGH_INTENT_WEBHOOK_URL || 'https://hooks.example.com/cognix/high-intent' }}",
+    url: '={{ $env.COGNIX_HIGH_INTENT_WEBHOOK_URL }}',
     sendBody: true,
     specifyBody: 'json',
     jsonBody: '={{ JSON.stringify({ text: $json.alert_message, lead: $json }) }}',
-    options: { ...retryOptions },
+    options: retryOptions,
   }, { onError: 'continueErrorOutput' })
 );
 nodes.push(
@@ -908,7 +1136,7 @@ nodes.push(
             options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
             conditions: [
               {
-                leftValue: '={{ $("Split Follow-up Batches").item.json.outreach_stage }}',
+                leftValue: '={{ $("Split Follow-up Batches").first().json.outreach_stage }}',
                 rightValue: 'initial_sent',
                 operator: { type: 'string', operation: 'equals' },
               },
@@ -923,7 +1151,7 @@ nodes.push(
             options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
             conditions: [
               {
-                leftValue: '={{ $("Split Follow-up Batches").item.json.outreach_stage }}',
+                leftValue: '={{ $("Split Follow-up Batches").first().json.outreach_stage }}',
                 rightValue: 'followup_1_sent',
                 operator: { type: 'string', operation: 'equals' },
               },
@@ -942,7 +1170,7 @@ nodes.push(
   node('Gmail Send Follow-up 1', 'n8n-nodes-base.gmail', [-560, 440], {
     resource: 'message',
     operation: 'send',
-    sendTo: "={{ $json.contact_email || 'ops@' + ($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0] }}",
+    sendTo: '={{ $json.contact_email || $json["contact_email"] }}',
     subject: '={{ "Re: " + ($json.email_subject || $json["email_subject"] || "following up") }}',
     emailType: 'text',
     message: '={{ $json.followup_1 || $json["followup_1"] }}',
@@ -968,7 +1196,7 @@ nodes.push(
   node('Gmail Send Follow-up 2', 'n8n-nodes-base.gmail', [-560, 640], {
     resource: 'message',
     operation: 'send',
-    sendTo: "={{ $json.contact_email || 'ops@' + ($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0] }}",
+    sendTo: '={{ $json.contact_email || $json["contact_email"] }}',
     subject: '={{ "Re: " + ($json.email_subject || "checking in") }}',
     emailType: 'text',
     message: '={{ $json.followup_2 || $json["followup_2"] }}',
@@ -994,7 +1222,7 @@ nodes.push(
   node('Gmail Send Breakup', 'n8n-nodes-base.gmail', [-560, 840], {
     resource: 'message',
     operation: 'send',
-    sendTo: "={{ $json.contact_email || 'ops@' + ($json.website || '').replace(/^https?:\\/\\//,'').split('/')[0] }}",
+    sendTo: '={{ $json.contact_email || $json["contact_email"] }}',
     subject: '={{ "Closing the loop — " + ($json.company_name || "") }}',
     emailType: 'text',
     message: '={{ $json.breakup_email || $json["breakup_email"] }}',
@@ -1019,9 +1247,7 @@ nodes.push(
 );
 
 // ============ ERROR HANDLING ============
-nodes.push(
-  node('Error Trigger', 'n8n-nodes-base.errorTrigger', [-3200, 600], {})
-);
+nodes.push(node('Error Trigger', 'n8n-nodes-base.errorTrigger', [-3200, 600], {}));
 nodes.push(
   node('Log Error Payload', 'n8n-nodes-base.code', [-2960, 600], {
     mode: 'runOnceForAllItems',
@@ -1033,15 +1259,15 @@ return [{
     execution_id: $execution.id,
     node: err.execution?.lastNodeExecuted || 'unknown',
     message: err.execution?.error?.message || JSON.stringify(err),
-    stack: err.execution?.error?.stack || '',
-  }
+    stack: (err.execution?.error?.stack || '').toString().slice(0, 4000),
+  },
 }];`,
   })
 );
 nodes.push(
   node('Sheets Log Error', 'n8n-nodes-base.googleSheets', [-2720, 600], {
     operation: 'append',
-    documentId: { __rl: true, value: "={{ $env.COGNIX_LEADS_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}", mode: 'id' },
+    documentId: { __rl: true, value: '={{ $env.COGNIX_LEADS_SHEET_ID }}', mode: 'id' },
     sheetName: { __rl: true, value: 'ErrorLog', mode: 'name' },
     columns: {
       mappingMode: 'defineBelow',
@@ -1056,17 +1282,30 @@ nodes.push(
   })
 );
 nodes.push(
-  node('HTTP Error Notify', 'n8n-nodes-base.httpRequest', [-2480, 600], {
+  node('IF Error Webhook Enabled', 'n8n-nodes-base.if', [-2480, 600], {
+    conditions: {
+      options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' },
+      conditions: [
+        {
+          leftValue: '={{ $env.COGNIX_ERROR_WEBHOOK_URL }}',
+          rightValue: '',
+          operator: { type: 'string', operation: 'notEmpty' },
+        },
+      ],
+      combinator: 'and',
+    },
+  })
+);
+nodes.push(
+  node('HTTP Error Notify', 'n8n-nodes-base.httpRequest', [-2240, 600], {
     method: 'POST',
-    url: "={{ $env.COGNIX_ERROR_WEBHOOK_URL || 'https://hooks.example.com/cognix/errors' }}",
+    url: '={{ $env.COGNIX_ERROR_WEBHOOK_URL }}',
     sendBody: true,
     specifyBody: 'json',
     jsonBody: '={{ JSON.stringify($json) }}',
     options: retryOptions,
-  })
+  }, { onError: 'continueErrorOutput' })
 );
-
-// Serper error fallback
 nodes.push(
   node('Handle Serper Error', 'n8n-nodes-base.set', [-1040, -200], {
     mode: 'manual',
@@ -1080,48 +1319,17 @@ nodes.push(
   })
 );
 nodes.push(
-  node('Handle OpenAI Error', 'n8n-nodes-base.set', [2320, -200], {
-    mode: 'manual',
-    assignments: {
-      assignments: [
-        { id: uid(), name: 'error_log', value: '={{ $json.error?.message || "OpenAI analysis failed" }}', type: 'string' },
-        { id: uid(), name: 'status', value: 'analysis_failed', type: 'string' },
-        { id: uid(), name: 'ai_readiness_score', value: 40, type: 'number' },
-        { id: uid(), name: 'operational_complexity_score', value: 50, type: 'number' },
-        { id: uid(), name: 'buying_probability', value: 0.25, type: 'number' },
-      ],
-    },
-    includeOtherFields: true,
-  })
-);
-
-// Loop backs for batches
-nodes.push(
   node('Loop Discovery Batches', 'n8n-nodes-base.code', [160, -560], {
     mode: 'runOnceForAllItems',
     jsCode: 'return [{ json: { loop: true } }];',
   })
 );
-nodes.push(
-  node('Run Follow-up Pass', 'n8n-nodes-base.code', [5200, -400], {
-    mode: 'runOnceForAllItems',
-    jsCode: `const cfg = $('Build Dedup Index').first().json;
-return [{ json: { ...cfg, triggerFollowups: true } }];`,
-  })
-);
-nodes.push(
-  node('Loop Scrape Batches', 'n8n-nodes-base.code', [3760, -560], {
-    mode: 'runOnceForAllItems',
-    jsCode: 'return $input.all();',
-  })
-);
 
-// Sticky notes
 nodes.push(
   node('NOTE Architecture', 'n8n-nodes-base.stickyNote', [-3400, -500], {
     content:
-      '## CognixAI Unified Outbound Platform\n\nTriggers: Manual | Discovery cron (Mon/Wed/Fri 06:00) | Follow-up cron (daily 09:00)\n\nPipeline: Serper discovery -> Apify enrich (optional) -> Firecrawl scrape -> OpenAI analysis -> ICP score -> personalize -> Google Sheets -> Gmail outreach -> follow-ups (3/5/7 days via date filter)\n\nError branch: wire workflow Settings > Error Workflow to a clone containing only Error Trigger nodes, OR rely on inline continueOnFail paths.\n\nWindows env vars: SERPER_API_KEY, FIRECRAWL_API_KEY, OPENAI_API_KEY, APIFY_API_TOKEN (optional), COGNIX_LEADS_SHEET_ID, COGNIX_FROM_EMAIL, COGNIX_HIGH_INTENT_WEBHOOK_URL, COGNIX_ERROR_WEBHOOK_URL',
-    height: 380,
+      '## CognixAI Outbound (Gemini)\n\nEnv: GEMINI_API_KEY, SERPER_API_KEY, FIRECRAWL_API_KEY, COGNIX_LEADS_SHEET_ID, COGNIX_FROM_EMAIL\nOptional: APIFY_API_TOKEN, COGNIX_HIGH_INTENT_WEBHOOK_URL, COGNIX_ERROR_WEBHOOK_URL\n\nAI: Gemini 2.0 Flash generateContent\nTriggers: Manual | Discovery Mon/Wed/Fri 06:00 | Follow-ups daily 09:00',
+    height: 320,
     width: 520,
   })
 );
@@ -1134,71 +1342,83 @@ conn('Merge Triggers', 'Workflow Config');
 conn('Workflow Config', 'Detect Run Mode');
 conn('Detect Run Mode', 'Route Run Mode');
 
-// Route: followups_only -> follow-up path
-conn('Route Run Mode', 'Read Active Outreach Leads', 0, 0); // followups_only output 0
-// discovery + full -> read existing
-conn('Route Run Mode', 'Read Existing Leads', 1, 0); // discovery_pipeline
-conn('Route Run Mode', 'Read Existing Leads', 2, 0); // full_pipeline fallback
+conn('Route Run Mode', 'Read Active Outreach Leads', 0, 0);
+conn('Route Run Mode', 'Read Existing Leads', 1, 0);
+conn('Route Run Mode', 'Read Existing Leads', 2, 0);
 
 conn('Read Existing Leads', 'Build Dedup Index');
 conn('Build Dedup Index', 'Build Discovery Queries');
 conn('Build Discovery Queries', 'Split Discovery Batches');
 conn('Split Discovery Batches', 'Serper Search');
 conn('Serper Search', 'Wait Serper Rate Limit');
-conn('Serper Search', 'Handle Serper Error', 1, 0); // error output
+conn('Serper Search', 'Handle Serper Error', 1, 0);
 conn('Wait Serper Rate Limit', 'Parse Serper Results');
 conn('Parse Serper Results', 'IF More Serper Pages');
-conn('IF More Serper Pages', 'Increment Serper Page', 0, 0); // true - more pages
+conn('IF More Serper Pages', 'Increment Serper Page', 0, 0);
 conn('Increment Serper Page', 'Serper Search');
-conn('IF More Serper Pages', 'Dedupe Companies', 1, 0); // false
+conn('IF More Serper Pages', 'Dedupe Companies', 1, 0);
 conn('Dedupe Companies', 'IF Has New Companies');
-conn('IF Has New Companies', 'Apify Optional Enrich', 0, 0);
+conn('IF Has New Companies', 'IF Apify Enabled', 0, 0);
 conn('IF Has New Companies', 'Loop Discovery Batches', 1, 0);
+conn('IF Apify Enabled', 'Apify Optional Enrich', 0, 0);
+conn('IF Apify Enabled', 'Skip Apify Pass-through', 1, 0);
 conn('Apify Optional Enrich', 'Merge Apify Enrichment');
-conn('Merge Apify Enrichment', 'Split Scrape Batches');
-conn('Split Scrape Batches', 'Firecrawl Homepage');
+conn('Skip Apify Pass-through', 'Merge Apify Skip');
+conn('Merge Apify Enrichment', 'Merge Enrich Paths', 0, 0);
+conn('Merge Apify Skip', 'Merge Enrich Paths', 1, 0);
+conn('Merge Enrich Paths', 'Split Scrape Batches');
+
+conn('Split Scrape Batches', 'Attach Lead Context');
+conn('Attach Lead Context', 'Firecrawl Homepage');
 conn('Firecrawl Homepage', 'Wait Firecrawl Rate Limit');
 conn('Wait Firecrawl Rate Limit', 'Firecrawl Careers');
 conn('Firecrawl Careers', 'Firecrawl Product');
 conn('Firecrawl Product', 'Extract Scrape Signals');
-conn('Extract Scrape Signals', 'Wait OpenAI Rate Limit');
-conn('Wait OpenAI Rate Limit', 'OpenAI Lead Analysis');
-conn('OpenAI Lead Analysis', 'IF OpenAI Analysis OK');
-conn('OpenAI Lead Analysis', 'Handle OpenAI Error', 1, 0);
-conn('IF OpenAI Analysis OK', 'Parse AI Analysis JSON', 0, 0);
-conn('Handle OpenAI Error', 'ICP Weighted Scoring');
-conn('IF OpenAI Analysis OK', 'Handle OpenAI Error', 1, 0);
+conn('Extract Scrape Signals', 'Wait Gemini Rate Limit');
+conn('Wait Gemini Rate Limit', 'Gemini Lead Analysis');
+conn('Gemini Lead Analysis', 'IF Gemini Analysis OK');
+conn('Gemini Lead Analysis', 'Handle Gemini Analysis Error', 1, 0);
+conn('IF Gemini Analysis OK', 'Parse AI Analysis JSON', 0, 0);
+conn('IF Gemini Analysis OK', 'Handle Gemini Analysis Error', 1, 0);
 conn('Parse AI Analysis JSON', 'ICP Weighted Scoring');
+conn('Handle Gemini Analysis Error', 'ICP Weighted Scoring');
 conn('ICP Weighted Scoring', 'Route ICP Priority');
-conn('Route ICP Priority', 'OpenAI Personalization', 0, 0); // high
-conn('Route ICP Priority', 'OpenAI Personalization', 1, 0); // medium
-conn('Route ICP Priority', 'Archive Low ICP', 2, 0); // low
-conn('OpenAI Personalization', 'Parse Personalization JSON');
+conn('Route ICP Priority', 'Wait Gemini Personalize', 0, 0);
+conn('Route ICP Priority', 'Wait Gemini Personalize', 1, 0);
+conn('Route ICP Priority', 'Archive Low ICP', 2, 0);
+conn('Wait Gemini Personalize', 'Gemini Personalization');
+conn('Gemini Personalization', 'Parse Personalization JSON');
+conn('Gemini Personalization', 'Handle Gemini Personalize Error', 1, 0);
 conn('Parse Personalization JSON', 'Edit Fields - Lead Record');
+conn('Handle Gemini Personalize Error', 'Edit Fields - Lead Record');
 conn('Edit Fields - Lead Record', 'Merge Outreach Paths', 0, 0);
 conn('Archive Low ICP', 'Merge Outreach Paths', 0, 1);
 conn('Merge Outreach Paths', 'Sheets Append Lead');
 conn('Sheets Append Lead', 'Loop Scrape Batches');
 conn('Loop Scrape Batches', 'Split Scrape Batches');
-conn('Split Scrape Batches', 'Read Leads For Outreach', 1, 0); // done
+conn('Split Scrape Batches', 'Read Leads For Outreach', 1, 0);
+
 conn('Read Leads For Outreach', 'Filter Ready To Send');
 conn('Filter Ready To Send', 'Split Outreach Batches');
-conn('Handle Serper Error', 'Loop Discovery Batches');
-conn('Loop Discovery Batches', 'Split Discovery Batches');
-conn('Split Outreach Batches', 'Run Follow-up Pass', 1, 0);
 conn('Split Outreach Batches', 'IF Not Already Contacted');
+conn('Split Outreach Batches', 'Run Follow-up Pass', 1, 0);
 conn('IF Not Already Contacted', 'Gmail Send Initial', 0, 0);
 conn('Gmail Send Initial', 'Sheets Update Contacted');
 conn('Sheets Update Contacted', 'Split Outreach Batches');
+conn('Handle Serper Error', 'Loop Discovery Batches');
+conn('Loop Discovery Batches', 'Split Discovery Batches');
+conn('Run Follow-up Pass', 'Read Active Outreach Leads');
 
-// Follow-up path
 conn('Read Active Outreach Leads', 'Filter Follow-up Candidates');
 conn('Filter Follow-up Candidates', 'Split Follow-up Batches');
 conn('Split Follow-up Batches', 'Gmail Check Replies');
 conn('Gmail Check Replies', 'IF Reply Detected');
 conn('IF Reply Detected', 'Sheets Mark Replied', 0, 0);
-conn('Sheets Mark Replied', 'Route High Intent Lead');
-conn('Route High Intent Lead', 'HTTP Alert High Intent');
+conn('Sheets Mark Replied', 'Log High Intent Reply');
+conn('Log High Intent Reply', 'IF High Intent Webhook Enabled');
+conn('IF High Intent Webhook Enabled', 'HTTP Alert High Intent', 0, 0);
+conn('IF High Intent Webhook Enabled', 'Split Follow-up Batches', 1, 0);
+conn('HTTP Alert High Intent', 'Split Follow-up Batches');
 conn('IF Reply Detected', 'Switch Follow-up Stage', 1, 0);
 conn('Switch Follow-up Stage', 'Gmail Send Follow-up 1', 0, 0);
 conn('Gmail Send Follow-up 1', 'Sheets Update Follow-up 1');
@@ -1209,15 +1429,13 @@ conn('Sheets Update Follow-up 2', 'Split Follow-up Batches');
 conn('Switch Follow-up Stage', 'Gmail Send Breakup', 2, 0);
 conn('Gmail Send Breakup', 'Sheets Update Breakup');
 conn('Sheets Update Breakup', 'Split Follow-up Batches');
-conn('Run Follow-up Pass', 'Read Active Outreach Leads');
 
-// Error workflow
 conn('Error Trigger', 'Log Error Payload');
 conn('Log Error Payload', 'Sheets Log Error');
-conn('Sheets Log Error', 'HTTP Error Notify');
+conn('Sheets Log Error', 'IF Error Webhook Enabled');
 
 const workflow = {
-  name: 'CognixAI Labs - Outbound Lead Intelligence Platform (Unified)',
+  name: 'CognixAI Labs - Outbound Lead Intelligence (Gemini)',
   nodes,
   connections,
   active: false,
@@ -1230,15 +1448,24 @@ const workflow = {
   pinData: {},
   meta: {
     templateCredsSetupCompleted: false,
-    instanceId: 'cognix-local-windows',
+    instanceId: 'cognix-local-windows-gemini',
   },
-  tags: [
-    { name: 'cognix' },
-    { name: 'outbound' },
-    { name: 'production' },
-  ],
+  tags: [{ name: 'cognix' }, { name: 'outbound' }, { name: 'gemini' }, { name: 'production' }],
 };
 
 const outPath = new URL('./cognix-outbound-lead-intelligence.json', import.meta.url);
 writeFileSync(outPath, JSON.stringify(workflow, null, 2), 'utf8');
-console.log('Written', outPath.pathname, 'nodes:', nodes.length);
+
+const names = new Set(nodes.map((n) => n.name));
+let missing = 0;
+for (const [from, c] of Object.entries(connections)) {
+  for (const outs of c.main || []) {
+    for (const link of outs || []) {
+      if (!names.has(link.node)) {
+        console.error('Missing node:', link.node, 'from', from);
+        missing++;
+      }
+    }
+  }
+}
+console.log('Written', outPath.pathname, 'nodes:', nodes.length, 'missing links:', missing);

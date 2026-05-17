@@ -2,7 +2,7 @@
 
 Production-grade unified n8n workflow for AI-powered outbound lead discovery, website intelligence, ICP scoring, personalized outreach, and automated follow-ups.
 
-Built for **local n8n on Windows** (not Docker). Uses official n8n nodes only.
+Built for **local n8n on Windows** (not Docker). Uses official n8n nodes only. **AI: Google Gemini 2.0 Flash** (not OpenAI).
 
 ## Contents
 
@@ -29,14 +29,14 @@ node workflows/generate-workflow.mjs
 
 | Variable | Required |
 |----------|----------|
+| `GEMINI_API_KEY` | Yes |
 | `SERPER_API_KEY` | Yes |
 | `FIRECRAWL_API_KEY` | Yes |
-| `OPENAI_API_KEY` | Yes |
 | `COGNIX_LEADS_SHEET_ID` | Yes |
-| `COGNIX_FROM_EMAIL` | Recommended |
+| `COGNIX_FROM_EMAIL` | Recommended (Gmail reply-to) |
 | `APIFY_API_TOKEN` | Optional |
-| `COGNIX_HIGH_INTENT_WEBHOOK_URL` | Optional |
-| `COGNIX_ERROR_WEBHOOK_URL` | Optional |
+| `COGNIX_HIGH_INTENT_WEBHOOK_URL` | Optional (only used if set; no fake defaults) |
+| `COGNIX_ERROR_WEBHOOK_URL` | Optional (only used if set) |
 
 ## Triggers
 
