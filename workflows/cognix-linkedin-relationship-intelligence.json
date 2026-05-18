@@ -1,25 +1,25 @@
 {
-  "name": "CognixAI Labs - LinkedIn Relationship Intelligence (Gemini)",
+  "name": "CognixAI Labs - Lean Lead Discovery (Gemini)",
   "nodes": [
     {
-      "id": "372db841-f55d-4ef7-bc2f-22dc20817937",
+      "id": "3cf0fad3-6785-4898-be58-1d9dac45ce3e",
       "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -3400,
+        -2400,
         0
       ],
       "parameters": {}
     },
     {
-      "id": "c1f79f58-2f3a-4685-a1e7-69a295e57dee",
+      "id": "e40336bf-4168-4d39-9630-27ec8cbe8489",
       "name": "Schedule - Discovery",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -3400,
-        -220
+        -2400,
+        -180
       ],
       "parameters": {
         "rule": {
@@ -33,47 +33,12 @@
       }
     },
     {
-      "id": "3b3bb165-4fd5-4b15-a5ed-5b1a9eca1553",
-      "name": "Schedule - LinkedIn Engagement",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        -3400,
-        220
-      ],
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "cronExpression",
-              "expression": "0 9,14 * * *"
-            }
-          ]
-        }
-      },
-      "notes": "Runs twice daily for human-paced LinkedIn stages (view → connect → message)."
-    },
-    {
-      "id": "3cee1df4-eb1e-480d-970d-1adc39cd61e9",
-      "name": "Merge Triggers",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        -3160,
-        0
-      ],
-      "parameters": {
-        "mode": "append",
-        "numberInputs": 3
-      }
-    },
-    {
-      "id": "7f852642-74f5-475f-bd4a-f72a1cd5c758",
+      "id": "39d26b3c-89df-43b3-a493-03e0da462c21",
       "name": "Workflow Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2920,
+        -2160,
         0
       ],
       "parameters": {
@@ -82,194 +47,86 @@
         "assignments": {
           "assignments": [
             {
-              "id": "dc4f3b6a-88fc-4449-a17e-4a341989ad1e",
-              "name": "runMode",
-              "value": "full",
-              "type": "string"
-            },
-            {
-              "id": "0c2f91e5-b48a-4e67-bb7d-a63b66179efd",
+              "id": "d2c727f2-e06d-463e-80e2-476d55008abb",
               "name": "spreadsheetId",
               "value": "={{ $env.COGNIX_LEADS_SHEET_ID || '' }}",
               "type": "string"
             },
             {
-              "id": "b1f9656a-5bed-4bb7-96f8-ae72ac4f5a4e",
+              "id": "cecac4de-af0c-43f8-b093-5df8164fe392",
               "name": "sheetName",
               "value": "Leads",
               "type": "string"
             },
             {
-              "id": "7b10822b-1fc6-48e3-8ac1-a4fa40e547c0",
+              "id": "7c43314a-874a-4bca-91f6-4287c8ea71e1",
+              "name": "failedSheetName",
+              "value": "Failed_Leads",
+              "type": "string"
+            },
+            {
+              "id": "8af5cfab-1adc-438b-b956-94761d10f839",
               "name": "serperQueries",
-              "value": "=[\"AI SaaS company site:linkedin.com/company\",\"B2B SaaS startup founder site:linkedin.com/in\",\"recruitment agency workflow automation\",\"agency scaling operations team\",\"workflow-heavy SaaS company careers\"]",
+              "value": "=[\"AI SaaS site:linkedin.com/company\",\"agentic AI startup site:linkedin.com/company\",\"workflow automation SaaS site:linkedin.com/company\",\"B2B AI platform site:linkedin.com/company\",\"AI operations startup site:linkedin.com/company\"]",
               "type": "array"
             },
             {
-              "id": "2049ff6e-b2e1-4ae9-b768-6cc87f780b18",
-              "name": "discoveryBatchSize",
-              "value": 5,
-              "type": "number"
-            },
-            {
-              "id": "c44e3418-5ebf-4d52-b5c3-d543d1dd98ab",
-              "name": "scrapeBatchSize",
+              "id": "1041544f-9ac3-4796-be55-a5f84144bf5c",
+              "name": "batchSize",
               "value": 2,
               "type": "number"
             },
             {
-              "id": "6103db17-f2a3-4976-bc71-901fe529a906",
-              "name": "engagementBatchSize",
-              "value": 3,
+              "id": "d20fa0a8-c4ff-49f8-8e8a-51775d760bdc",
+              "name": "maxLeadsPerRun",
+              "value": 8,
               "type": "number"
             },
             {
-              "id": "bc24439a-dd27-4f35-85b1-3da400bf9041",
-              "name": "serperWaitMs",
-              "value": 2000,
-              "type": "number"
-            },
-            {
-              "id": "57dd1d43-a8aa-4f0b-882a-7bd8992a161c",
-              "name": "firecrawlWaitMs",
-              "value": 3000,
-              "type": "number"
-            },
-            {
-              "id": "ee03b797-5a92-4453-a7c2-7e20046f3cd1",
-              "name": "geminiWaitMs",
-              "value": 1200,
-              "type": "number"
-            },
-            {
-              "id": "73d61a71-9769-4b15-a95e-71687b756fe3",
+              "id": "1a66dc24-3bd8-4191-9233-5b78f1776ee2",
               "name": "maxScrapeChars",
-              "value": 8000,
+              "value": 1500,
               "type": "number"
             },
             {
-              "id": "8ab66415-4bb6-49d7-820a-735386fbba26",
-              "name": "maxProfileViewsPerDay",
-              "value": 40,
+              "id": "eb30638c-ed18-4825-b679-e7d27d24cf82",
+              "name": "serperNumResults",
+              "value": 8,
               "type": "number"
             },
             {
-              "id": "33955a30-9fb6-43c4-9dfd-a4f7efa5b37c",
-              "name": "maxConnectionsPerDay",
-              "value": 20,
-              "type": "number"
-            },
-            {
-              "id": "183f849b-07b5-402c-8621-4fb4cf08cbbe",
-              "name": "connectionWaitHours",
-              "value": 2,
-              "type": "number"
-            },
-            {
-              "id": "932d6326-5fda-49e0-9bb6-54549d13ea37",
-              "name": "messageWaitDays",
-              "value": 2,
-              "type": "number"
-            },
-            {
-              "id": "c39180e9-e55c-4590-9161-5cba570beec4",
+              "id": "d2ba68d5-640c-4d6a-8d16-88d34aab05f0",
               "name": "brandName",
               "value": "CognixAI Labs",
               "type": "string"
             }
           ]
-        },
-        "options": {}
+        }
       },
-      "notes": "Env: GEMINI_API_KEY, SERPER_API_KEY, FIRECRAWL_API_KEY, COGNIX_LEADS_SHEET_ID. Optional: APIFY_API_TOKEN, COGNIX_PLAYWRIGHT_WEBHOOK_URL, COGNIX_ERROR_WEBHOOK_URL. No email vars."
+      "notes": "Env: GEMINI_API_KEY, SERPER_API_KEY, FIRECRAWL_API_KEY, COGNIX_LEADS_SHEET_ID"
     },
     {
-      "id": "12c77195-06a4-47ac-861a-7bcf507f80ba",
-      "name": "Detect Run Mode",
+      "id": "fa5ac329-2efb-412a-9cc4-dfca6db7f52f",
+      "name": "Validate Config",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2680,
+        -1920,
         0
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const config = $input.first().json;\nif (!config.spreadsheetId) {\n  throw new Error('COGNIX_LEADS_SHEET_ID is required.');\n}\nif (!$env.GEMINI_API_KEY) {\n  throw new Error('GEMINI_API_KEY is required.');\n}\nconst discoveryRan = $('Schedule - Discovery').isExecuted;\nconst engagementRan = $('Schedule - LinkedIn Engagement').isExecuted;\nconst manualRan = $('Manual Trigger').isExecuted;\nlet runMode = 'full';\nif (engagementRan && !discoveryRan && !manualRan) runMode = 'linkedin_only';\nelse if (discoveryRan && !manualRan) runMode = 'discovery_pipeline';\nelse if (manualRan) runMode = 'full';\nreturn [{ json: { ...config, runMode } }];"
+        "jsCode": "const c = $input.first().json;\nif (!c.spreadsheetId) throw new Error('COGNIX_LEADS_SHEET_ID is required');\nif (!$env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is required');\nif (!$env.SERPER_API_KEY) throw new Error('SERPER_API_KEY is required');\nif (!$env.FIRECRAWL_API_KEY) throw new Error('FIRECRAWL_API_KEY is required');\nreturn [{ json: { ...c, _runId: 'run_' + Date.now() } }];"
       }
     },
     {
-      "id": "21e53e55-578b-4411-8cce-15f1079b863b",
-      "name": "Route Run Mode",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.2,
-      "position": [
-        -2440,
-        0
-      ],
-      "parameters": {
-        "mode": "rules",
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict"
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.runMode }}",
-                    "rightValue": "linkedin_only",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "linkedin_only"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict"
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.runMode }}",
-                    "rightValue": "discovery_pipeline",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "discovery_pipeline"
-            }
-          ]
-        },
-        "options": {
-          "fallbackOutput": "extra",
-          "fallbackOutputName": "full_pipeline"
-        }
-      }
-    },
-    {
-      "id": "50b89bcb-abce-4733-a3bb-b65d47e8f861",
+      "id": "4460632e-bb84-41dd-abde-623b33552f40",
       "name": "Read Existing Leads",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -2200,
-        -420
+        -1680,
+        0
       ],
       "parameters": {
         "operation": "read",
@@ -285,62 +142,47 @@
         },
         "options": {
           "rangeDefinition": "specifyRange",
-          "range": "A:AZ"
+          "range": "A:Z"
         }
-      }
+      },
+      "alwaysOutputData": true
     },
     {
-      "id": "3a13bf46-b9f0-4d58-8d3a-fd2c9343d2dc",
+      "id": "aaa04da1-5e99-4f38-bdc6-6fa9f34c5f8c",
       "name": "Build Dedup Index",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1960,
-        -420
+        -1440,
+        0
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const config = $('Detect Run Mode').first().json;\nconst rows = $input.all().map((i) => i.json).filter((r) => r.lead_id || r.company_name);\nconst seenDomains = new Set();\nconst seenNames = new Set();\nconst seenFounderUrls = new Set();\nconst today = new Date().toISOString().slice(0, 10);\nlet viewsToday = 0;\nlet connectionsToday = 0;\nfor (const r of rows) {\n  const website = String(r.website || r.Website || '')\n    .toLowerCase()\n    .replace(/^https?:\\/\\//, '')\n    .replace(/\\/$/, '')\n    .split('/')[0];\n  const name = String(r.company_name || r['Company Name'] || '').toLowerCase().trim();\n  const founderUrl = String(r.founder_linkedin_url || r['founder_linkedin_url'] || '').toLowerCase().trim();\n  if (website) seenDomains.add(website);\n  if (name) seenNames.add(name);\n  if (founderUrl) seenFounderUrls.add(founderUrl);\n  if (String(r.viewed_at || '').startsWith(today)) viewsToday++;\n  if (String(r.connection_requested_at || '').startsWith(today)) connectionsToday++;\n}\nreturn [{\n  json: {\n    ...config,\n    seenDomains: [...seenDomains],\n    seenNames: [...seenNames],\n    seenFounderUrls: [...seenFounderUrls],\n    existingRowCount: rows.length,\n    viewsToday,\n    connectionsToday,\n    allRows: rows,\n  },\n}];"
+        "jsCode": "const cfg = $('Validate Config').first().json;\nconst rows = $input.all().map((i) => i.json).filter((r) => r && (r.lead_id || r.company_name));\nconst normDomain = (w) =>\n  String(w || '')\n    .toLowerCase()\n    .replace(/^https?:\\/\\//, '')\n    .replace(/\\/$/, '')\n    .split('/')[0];\nconst seenDomains = new Set();\nconst seenNames = new Set();\nconst seenLinkedIn = new Set();\nconst seenFounderUrls = new Set();\nfor (const r of rows) {\n  const d = normDomain(r.website);\n  const n = String(r.company_name || '').toLowerCase().trim();\n  const li = String(r.linkedin_company_url || '').toLowerCase().split('?')[0];\n  const fu = String(r.founder_linkedin_url || '').toLowerCase().split('?')[0];\n  if (d) seenDomains.add(d);\n  if (n) seenNames.add(n);\n  if (li) seenLinkedIn.add(li);\n  if (fu && fu.includes('linkedin.com/in')) seenFounderUrls.add(fu);\n}\nreturn [{\n  json: {\n    ...cfg,\n    seenDomains: [...seenDomains],\n    seenNames: [...seenNames],\n    seenLinkedIn: [...seenLinkedIn],\n    seenFounderUrls: [...seenFounderUrls],\n    existingRowCount: rows.length,\n  },\n}];"
       }
     },
     {
-      "id": "8d96f1e9-3a15-4300-a085-f4b288620d5f",
-      "name": "Build Discovery Queries",
+      "id": "397164c5-a50e-44fa-a2c4-abf7ddd49a34",
+      "name": "Build Serper Queries",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1720,
-        -420
+        -1200,
+        0
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const cfg = $input.first().json;\nlet queries = cfg.serperQueries;\nif (typeof queries === 'string') {\n  try { queries = JSON.parse(queries); } catch { queries = []; }\n}\nif (!Array.isArray(queries)) queries = [];\nconst items = queries.map((q, idx) => ({\n  json: { ...cfg, searchQuery: q, page: 1, maxPages: 2, queryIndex: idx },\n}));\nreturn items.length\n  ? items\n  : [{ json: { ...cfg, searchQuery: 'B2B SaaS AI automation company site:linkedin.com/company', page: 1, maxPages: 1, queryIndex: 0 } }];"
+        "jsCode": "const cfg = $input.first().json;\nlet queries = cfg.serperQueries;\nif (typeof queries === 'string') {\n  try { queries = JSON.parse(queries); } catch { queries = []; }\n}\nif (!Array.isArray(queries) || !queries.length) {\n  queries = ['AI SaaS site:linkedin.com/company'];\n}\nreturn queries.slice(0, 5).map((q, queryIndex) => ({\n  json: {\n    ...cfg,\n    searchQuery: q,\n    queryIndex,\n    page: 1,\n    _queryKey: (cfg._runId || 'run') + '_q' + queryIndex,\n  },\n}));"
       }
     },
     {
-      "id": "10364053-b809-49c6-bba1-6da7cda2cd51",
-      "name": "Split Discovery Batches",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -1480,
-        -420
-      ],
-      "parameters": {
-        "batchSize": "={{ $json.discoveryBatchSize || 5 }}",
-        "options": {
-          "reset": false
-        }
-      }
-    },
-    {
-      "id": "cc3fc6ee-9989-4898-a336-76b69f23d104",
+      "id": "29071456-0d66-4c71-b983-02add172729d",
       "name": "Serper Search",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -1240,
-        -420
+        -960,
+        0
       ],
       "parameters": {
         "method": "POST",
@@ -360,153 +202,82 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ q: $json.searchQuery, num: 10, page: $json.page || 1, gl: \"us\", hl: \"en\" }) }}",
+        "jsonBody": "={{ JSON.stringify({ q: $json.searchQuery, num: $json.serperNumResults || 8, page: 1, gl: \"us\", hl: \"en\" }) }}",
         "options": {
           "retry": {
             "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
+            "maxTries": 1,
+            "waitBetween": 1000
           },
-          "timeout": 120000
+          "timeout": 30000
         }
       },
-      "onError": "continueErrorOutput"
+      "onError": "continueRegularOutput"
     },
     {
-      "id": "0ed1b3bc-679a-4591-b603-55ef2a265b28",
-      "name": "Wait Serper Rate Limit",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        -1000,
-        -420
-      ],
-      "parameters": {
-        "resume": "timeInterval",
-        "amount": "={{ $(\"Workflow Config\").first().json.serperWaitMs || 2000 }}",
-        "unit": "milliseconds"
-      }
-    },
-    {
-      "id": "c2b9b07f-e740-41d0-b0b8-bc4dc25d8bb7",
-      "name": "Parse Serper Results",
+      "id": "070b46df-1076-462c-b297-f5652aba83b1",
+      "name": "Merge Serper By Query Key",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -760,
-        -420
+        -720,
+        0
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const src = $('Split Discovery Batches').first().json;\nconst body = $input.first().json;\nconst organic = body.organic || [];\nconst companies = organic\n  .map((r, i) => {\n    const link = r.link || '';\n    let website = link;\n    let linkedin_company_url = '';\n    if (link.includes('linkedin.com/company')) {\n      linkedin_company_url = link.split('?')[0];\n      website = (r.snippet || '').match(/https?:\\/\\/[^\\s)]+/)?.[0] || '';\n    } else if (!link.includes('linkedin.com')) {\n      website = link;\n    }\n    const domain = String(website).replace(/^https?:\\/\\//, '').split('/')[0];\n    return {\n      lead_id: 'cognix_' + Date.now() + '_' + src.queryIndex + '_' + i,\n      company_name: (r.title || '').split('|')[0].split('-')[0].trim() || r.title || 'Unknown Company',\n      website: website.startsWith('http') ? website : domain ? 'https://' + domain : '',\n      linkedin_company_url,\n      founder_name: '',\n      founder_linkedin_url: '',\n      description: r.snippet || '',\n      source_query: src.searchQuery,\n      status: 'discovered',\n      replied: false,\n      notes: '',\n      created_at: new Date().toISOString(),\n    };\n  })\n  .filter((c) => c.company_name);\nreturn companies.map((json) => ({ json }));"
+        "jsCode": "const queries = $('Build Serper Queries').all().map((i) => i.json);\nconst results = $input.all().map((i) => i.json);\nconst merged = [];\nconst len = Math.max(queries.length, results.length);\nfor (let i = 0; i < len; i++) {\n  const q = queries[i] || {};\n  const r = results[i] || {};\n  const queryKey = q._queryKey || ((q._runId || 'run') + '_q' + (q.queryIndex ?? i));\n  merged.push({\n    json: {\n      ...q,\n      ...r,\n      _queryKey: queryKey,\n      _mergeBy: 'queryKey',\n    },\n  });\n}\nreturn merged.length ? merged : [{ json: { _empty: true, _trace: 'serper_merge_empty' } }];"
       }
     },
     {
-      "id": "b872013e-2a08-4d64-8c4a-2f4dcc7a7276",
-      "name": "IF More Serper Pages",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
+      "id": "6a5843d1-6c9d-40a8-88a4-793181131692",
+      "name": "Parse Serper Companies",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -520,
-        -540
+        -480,
+        0
       ],
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $(\"Split Discovery Batches\").first().json.page }}",
-              "rightValue": "={{ $(\"Split Discovery Batches\").first().json.maxPages }}",
-              "operator": {
-                "type": "number",
-                "operation": "lt"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
+        "mode": "runOnceForAllItems",
+        "jsCode": "const normDomain = (w) =>\n  String(w || '')\n    .toLowerCase()\n    .replace(/^https?:\\/\\//, '')\n    .replace(/\\/$/, '')\n    .split('/')[0];\n\nfunction isLikelyStartupDomain(host) {\n  if (!host || host.length < 4) return false;\n  const h = host.split(':')[0];\n  const bad = new Set([\n    'reddit.com', 'youtube.com', 'youtu.be', 'medium.com', 'twitter.com', 'x.com',\n    'facebook.com', 'instagram.com', 'linkedin.com', 'wikipedia.org', 'google.com',\n    'bing.com', 'yahoo.com', 'news.ycombinator.com', 'producthunt.com', 'tiktok.com',\n    'pinterest.com', 'quora.com', 'stackoverflow.com', 'github.com', 'substack.com',\n    'wordpress.com', 'blogspot.com', 'tumblr.com', 'soundcloud.com', 'vimeo.com',\n  ]);\n  if (bad.has(h)) return false;\n  const parts = h.split('.');\n  if (parts.length < 2) return false;\n  const tld = parts[parts.length - 1];\n  const tldOk = ['com', 'io', 'ai', 'co', 'app', 'dev', 'tech', 'so', 'team', 'tools', 'cloud', 'software', 'net', 'org'].includes(tld);\n  if (!tldOk) return false;\n  if (parts[0].length < 2) return false;\n  return true;\n}\n\nconst blockedPatterns = [\n  'reddit',\n  'youtube',\n  'medium',\n  'y combinator',\n  'yc',\n  'best ',\n  'top ',\n  'how to',\n  'guide',\n  'blog',\n  'article',\n  'tools',\n  'tips',\n  'watch',\n  'founder reacts',\n  'underestimated',\n];\n\nconst companies = [];\nconst runId = $input.first().json._runId || ('run_' + Date.now());\n\nfor (const item of $input.all()) {\n  const row = item.json;\n  const searchQuery = row.searchQuery || '';\n  const queryIndex = row.queryIndex ?? 0;\n  const organic = Array.isArray(row.organic) ? row.organic : [];\n\n  for (let i = 0; i < organic.length; i++) {\n    const r = organic[i] || {};\n    const link = r.link || '';\n    const title = String(r.title || '').toLowerCase();\n    const linkLower = String(link || '').toLowerCase();\n\n    const isBad =\n      blockedPatterns.some((p) => title.includes(p)) ||\n      linkLower.includes('reddit.com') ||\n      linkLower.includes('youtube.com') ||\n      linkLower.includes('medium.com');\n    if (isBad) continue;\n\n    let website = '';\n    let linkedin_company_url = '';\n    if (link.includes('linkedin.com/company')) {\n      linkedin_company_url = link.split('?')[0];\n      const m = (r.snippet || '').match(/https?:\\/\\/[^\\s)]+/);\n      website = m ? m[0] : '';\n    } else if (link && !link.includes('linkedin.com/in')) {\n      website = link;\n    }\n\n    const domainFromLink = normDomain(link);\n    const domainFromSite = normDomain(website);\n    const isLinkedInCompany = linkLower.includes('linkedin.com/company');\n    const acceptNonLinkedIn = !isLinkedInCompany && isLikelyStartupDomain(domainFromLink);\n\n    if (!isLinkedInCompany && !acceptNonLinkedIn) continue;\n\n    let company_name = String(r.title || '')\n      .replace(/Official Page|LinkedIn/gi, '')\n      .split('|')[0]\n      .split(' - ')[0]\n      .trim();\n    if (!company_name || company_name.length < 2) continue;\n    if (company_name.length > 45) continue;\n\n    const domain = normDomain(website);\n    companies.push({\n      lead_id: runId + '_q' + queryIndex + '_' + i,\n      company_name,\n      website: website.startsWith('http') ? website : domain ? 'https://' + domain : '',\n      linkedin_company_url,\n      description: (r.snippet || '').slice(0, 400),\n      source_query: searchQuery,\n      status: 'discovered',\n      created_at: new Date().toISOString(),\n    });\n  }\n}\n\nreturn companies.length\n  ? companies.map((json) => ({ json }))\n  : [{ json: { _empty: true, _trace: 'no_serper_companies' } }];"
       }
     },
     {
-      "id": "3efdb554-baf0-44c1-957f-1c25c038ff9b",
-      "name": "Increment Serper Page",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -280,
-        -660
-      ],
-      "parameters": {
-        "mode": "manual",
-        "assignments": {
-          "assignments": [
-            {
-              "id": "20a59895-a56b-48e4-8780-766716b713d5",
-              "name": "page",
-              "value": "={{ $(\"Split Discovery Batches\").first().json.page + 1 }}",
-              "type": "number"
-            }
-          ]
-        },
-        "includeOtherFields": true
-      }
-    },
-    {
-      "id": "05eb999c-9889-4c8d-957d-235d52b8ab0e",
+      "id": "483a614a-872d-47d1-a05d-50d8da53f2fc",
       "name": "Dedupe Companies",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -520,
-        -420
+        -240,
+        0
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const cfg = $('Build Dedup Index').first().json;\nconst seenDomains = new Set(cfg.seenDomains || []);\nconst seenNames = new Set(cfg.seenNames || []);\nconst unique = [];\nconst localDomains = new Set();\nfor (const item of $input.all()) {\n  const c = item.json;\n  const domain = String(c.website || '').toLowerCase().replace(/^https?:\\/\\//, '').replace(/\\/$/, '').split('/')[0];\n  const name = String(c.company_name || '').toLowerCase().trim();\n  if (!name) continue;\n  if (domain && (seenDomains.has(domain) || localDomains.has(domain))) continue;\n  if (seenNames.has(name)) continue;\n  if (domain) { localDomains.add(domain); seenDomains.add(domain); }\n  seenNames.add(name);\n  unique.push({ json: c });\n}\nreturn unique;"
+        "jsCode": "const cfg = $input.first().json._empty\n  ? $('Build Dedup Index').first().json\n  : { ...$('Build Dedup Index').first().json };\n\nif ($input.first().json._empty) {\n  return [{ json: { ...cfg, _empty: true, _trace: 'dedupe_nothing_to_process' } }];\n}\n\nconst normDomain = (w) =>\n  String(w || '')\n    .toLowerCase()\n    .replace(/^https?:\\/\\//, '')\n    .replace(/\\/$/, '')\n    .split('/')[0];\n\nconst seenDomains = new Set(cfg.seenDomains || []);\nconst seenNames = new Set(cfg.seenNames || []);\nconst seenLinkedIn = new Set(cfg.seenLinkedIn || []);\nconst seenFounderUrls = new Set(cfg.seenFounderUrls || []);\nconst localDomains = new Set();\nconst unique = [];\n\nfor (const item of $input.all()) {\n  const c = item.json;\n  if (!c || c._empty || !c.company_name) continue;\n  const domain = normDomain(c.website);\n  const name = String(c.company_name).toLowerCase().trim();\n  const li = String(c.linkedin_company_url || '').toLowerCase().split('?')[0];\n  const fu = String(c.founder_linkedin_url || '').toLowerCase().split('?')[0];\n  if (domain && (seenDomains.has(domain) || localDomains.has(domain))) continue;\n  if (seenNames.has(name)) continue;\n  if (li && seenLinkedIn.has(li)) continue;\n  if (fu && fu.includes('linkedin.com/in') && seenFounderUrls.has(fu)) continue;\n  if (domain) { localDomains.add(domain); seenDomains.add(domain); }\n  seenNames.add(name);\n  if (li) seenLinkedIn.add(li);\n  if (fu) seenFounderUrls.add(fu);\n  unique.push({ json: { ...cfg, ...c } });\n}\n\nif (!unique.length) {\n  return [{ json: { ...cfg, _empty: true, _trace: 'all_duplicates' } }];\n}\nreturn unique;"
       }
     },
     {
-      "id": "2bde7319-af7d-4332-aa36-edf4e62f43ff",
-      "name": "IF Has New Companies",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
+      "id": "6110663f-0095-49e6-b26f-e8006e60f206",
+      "name": "Limit Leads Per Run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -280,
-        -420
+        0,
+        0
       ],
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $input.all().length }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $input.first().json;\nif (cfg._empty) return [{ json: cfg }];\nconst max = Number(cfg.maxLeadsPerRun) || 8;\nconst leads = $input.all().map((i) => i.json).filter((j) => j.company_name);\nreturn leads.slice(0, max).map((json) => ({ json }));"
       }
     },
     {
-      "id": "6bec4d07-905b-474c-9333-218c457c6147",
-      "name": "IF Apify Enabled",
+      "id": "aa9d0a44-e56f-4354-9e65-9656435d30ca",
+      "name": "IF Has Leads To Process",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -160,
-        -420
+        240,
+        0
       ],
       "parameters": {
         "conditions": {
@@ -517,7 +288,15 @@
           },
           "conditions": [
             {
-              "leftValue": "={{ $env.APIFY_API_TOKEN }}",
+              "leftValue": "={{ $json._empty === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "leftValue": "={{ $json.company_name || \"\" }}",
               "rightValue": "",
               "operator": {
                 "type": "string",
@@ -530,432 +309,51 @@
       }
     },
     {
-      "id": "370523a4-bfed-4fdc-95bc-8b76b541aeea",
-      "name": "Apify Optional Enrich",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "id": "bd7ed00f-1f55-464a-b347-013de01c4239",
+      "name": "Run Complete - Nothing New",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
-        40,
-        -500
+        480,
+        180
       ],
       "parameters": {
-        "method": "POST",
-        "url": "https://api.apify.com/v2/acts/apify~google-search-scraper/run-sync-get-dataset-items",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
             {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Authorization",
-              "value": "={{ \"Bearer \" + $env.APIFY_API_TOKEN }}"
+              "id": "eb8cf40a-1303-4be4-9fee-e71c23757d75",
+              "name": "_trace",
+              "value": "={{ \"complete_nothing_new \" + $now.toISO() }}",
+              "type": "string"
             }
           ]
         },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ queries: $json.company_name + \" official website\", maxPagesPerQuery: 1, resultsPerPage: 3 }) }}",
-        "options": {
-          "retry": {
-            "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
-          },
-          "timeout": 120000
-        }
-      },
-      "onError": "continueErrorOutput"
+        "includeOtherFields": true
+      }
     },
     {
-      "id": "0f28b6b8-71ba-479c-ae45-9062f43e10a5",
-      "name": "Skip Apify Pass-through",
+      "id": "aeb421eb-b24f-4fc8-9b60-8932b7d963c4",
+      "name": "Prepare Founder Search",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        40,
-        -340
+        480,
+        0
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "return { json: { ...$json, apify_enriched: false } };"
+        "jsCode": "const lead = $json;\nif (!lead.lead_id) throw new Error('lead_id required before founder search');\nreturn {\n  json: {\n    ...lead,\n    _mergeBy: 'lead_id',\n    founder_search_query: String(lead.company_name || '') + ' founder site:linkedin.com/in',\n  },\n};"
       }
     },
     {
-      "id": "3e2ebf39-62ce-4e73-a137-91fcf7fdd36f",
-      "name": "Merge Apify Enrichment",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        160,
-        -420
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const items = $('Dedupe Companies').all();\nconst base = items[$itemIndex]?.json || $json;\nconst apify = $input.first().json;\nlet website = base.website;\nif (Array.isArray(apify) && apify[0]?.url) website = apify[0].url;\nif (apify?.organic?.[0]?.link) website = apify.organic[0].link;\nreturn { json: { ...base, website: website || base.website, apify_enriched: true } };"
-      }
-    },
-    {
-      "id": "2586cfe0-cb89-45fd-b599-1f2817d0c76a",
-      "name": "Merge Apify Skip",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        160,
-        -340
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "return { json: $json };"
-      }
-    },
-    {
-      "id": "65a18070-3d79-47e6-b6f2-ba50f4ae23ea",
-      "name": "Merge Enrich Paths",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        280,
-        -420
-      ],
-      "parameters": {
-        "mode": "append",
-        "numberInputs": 2
-      }
-    },
-    {
-      "id": "6082a6c5-fb00-4d13-83c9-860f3fb46af4",
-      "name": "Split Scrape Batches",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        400,
-        -420
-      ],
-      "parameters": {
-        "batchSize": "={{ $(\"Build Dedup Index\").first().json.scrapeBatchSize || 2 }}",
-        "options": {
-          "reset": false
-        }
-      }
-    },
-    {
-      "id": "7ab7f088-2bfb-41a3-9993-1ead004c0329",
-      "name": "Attach Lead Context",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        560,
-        -420
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const cfg = $('Build Dedup Index').first().json;\nconst lead = $json;\nreturn { json: { ...cfg, ...lead, _lead_ref: lead.lead_id, website: lead.website || '' } };"
-      }
-    },
-    {
-      "id": "0b7879af-caee-4abe-bf01-5b663fa60949",
-      "name": "Firecrawl Homepage",
+      "id": "9abe48d3-7373-469f-bd6b-5a537770dbc8",
+      "name": "Serper Founder Lookup",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        760,
-        -420
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.firecrawl.dev/v1/scrape",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Authorization",
-              "value": "={{ \"Bearer \" + $env.FIRECRAWL_API_KEY }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ url: $(\"Attach Lead Context\").first().json.website, formats: [\"markdown\"], onlyMainContent: true, timeout: 60000 }) }}",
-        "options": {
-          "retry": {
-            "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
-          },
-          "timeout": 120000
-        }
-      },
-      "onError": "continueErrorOutput"
-    },
-    {
-      "id": "e39c9320-a20f-4a18-8e8f-d8f6ec3e5dd9",
-      "name": "Wait Firecrawl Rate Limit",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        1000,
-        -420
-      ],
-      "parameters": {
-        "resume": "timeInterval",
-        "amount": "={{ $(\"Workflow Config\").first().json.firecrawlWaitMs || 3000 }}",
-        "unit": "milliseconds"
-      }
-    },
-    {
-      "id": "a5a7f636-bc11-40d8-bef5-a7960eddd936",
-      "name": "Firecrawl About",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1240,
-        -420
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.firecrawl.dev/v1/scrape",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Authorization",
-              "value": "={{ \"Bearer \" + $env.FIRECRAWL_API_KEY }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  url: ($(\"Attach Lead Context\").first().json.website || \"\").replace(/\\/$/, \"\") + \"/about\",\n  formats: [\"markdown\"],\n  onlyMainContent: true,\n  timeout: 60000\n}) }}",
-        "options": {
-          "retry": {
-            "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
-          },
-          "timeout": 120000
-        }
-      },
-      "onError": "continueErrorOutput"
-    },
-    {
-      "id": "9656f041-8eb2-4f3e-a094-8dd5636c00f4",
-      "name": "Extract Scrape Signals",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1480,
-        -420
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const company = $('Attach Lead Context').first().json;\nconst maxChars = Number(company.maxScrapeChars) || 8000;\nconst slice = (v) => String(v || '').slice(0, maxChars);\nconst homepage = $('Firecrawl Homepage').first().json?.data?.markdown || $('Firecrawl Homepage').first().json?.markdown || '';\nconst about = $('Firecrawl About').first().json?.data?.markdown || '';\nconst combined = [homepage, about].join('\\n').toLowerCase();\nconst count = (term) => (combined.match(new RegExp(term, 'gi')) || []).length;\nreturn {\n  json: {\n    lead_id: company.lead_id,\n    company_name: company.company_name,\n    website: company.website,\n    linkedin_company_url: company.linkedin_company_url || '',\n    founder_name: company.founder_name || '',\n    founder_linkedin_url: company.founder_linkedin_url || '',\n    description: company.description,\n    source_query: company.source_query,\n    scraped_homepage: slice(homepage),\n    scraped_about: slice(about),\n    signals: {\n      ai_mentions: count('\\\\b(ai|artificial intelligence|llm|gemini|machine learning)\\\\b'),\n      automation_mentions: count('\\\\b(automation|automate|workflow|orchestrat)\\\\b'),\n      hiring_mentions: count('\\\\b(hiring|careers|founder|ceo|cto)\\\\b'),\n      support_mentions: count('\\\\b(support|customer success|operations)\\\\b'),\n    },\n    status: 'scraped',\n    replied: false,\n    notes: company.notes || '',\n    created_at: company.created_at || new Date().toISOString(),\n    updated_at: new Date().toISOString(),\n  },\n};"
-      }
-    },
-    {
-      "id": "d217bf84-ffa2-4bcd-bf90-27e67d266d37",
-      "name": "Wait Gemini Rate Limit",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        1720,
-        -420
-      ],
-      "parameters": {
-        "resume": "timeInterval",
-        "amount": "={{ $(\"Workflow Config\").first().json.geminiWaitMs || 1200 }}",
-        "unit": "milliseconds"
-      }
-    },
-    {
-      "id": "f6196124-f4b3-4985-95b3-690cd4c708e0",
-      "name": "Gemini Company Analysis",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1960,
-        -420
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "={{ \"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\" + $env.GEMINI_API_KEY }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  contents: [{\n    parts: [{\n      text: \"You are a B2B relationship analyst for CognixAI Labs (warm networking, not sales spam). Return STRICT JSON only with keys: ai_readiness_score, operational_complexity_score, founder_fit_score, relationship_angle, likely_pain_points, workflow_complexity, summary. Scores 0-100 except founder_fit_score. No markdown.\\n\\nCompany: \" + $json.company_name + \"\\nWebsite: \" + $json.website + \"\\nLinkedIn company: \" + ($json.linkedin_company_url || \"\") + \"\\nDescription: \" + ($json.description || \"\") + \"\\nSignals: \" + JSON.stringify($json.signals || {}) + \"\\nHomepage: \" + ($json.scraped_homepage || \"\").slice(0, 3500) + \"\\nAbout: \" + ($json.scraped_about || \"\").slice(0, 2000)\n    }]\n  }],\n  generationConfig: { temperature: 0.2, responseMimeType: \"application/json\" }\n}) }}",
-        "options": {
-          "retry": {
-            "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
-          },
-          "timeout": 120000
-        }
-      },
-      "onError": "continueErrorOutput"
-    },
-    {
-      "id": "652b794c-0e60-4553-8be3-af56f2510bfa",
-      "name": "IF Gemini Analysis OK",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        2200,
-        -420
-      ],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $json.candidates?.[0]?.content?.parts?.[0]?.text }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
-      }
-    },
-    {
-      "id": "2fbc4500-1b33-4558-8239-8810eeac1df2",
-      "name": "Parse AI Analysis JSON",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2440,
-        -420
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "function extractGeminiText(payload) {\n  if (!payload || typeof payload !== 'object') return '';\n  const parts = payload.candidates?.[0]?.content?.parts;\n  if (!Array.isArray(parts)) return '';\n  return parts.map((p) => p?.text || '').join('').trim();\n}\nfunction parseStrictJson(text) {\n  if (!text) return null;\n  let cleaned = String(text).trim();\n  if (cleaned.startsWith('```')) {\n    cleaned = cleaned.replace(/^\\`\\`\\`(?:json)?\\s*/i, '').replace(/\\`\\`\\`\\s*$/, '').trim();\n  }\n  try {\n    return JSON.parse(cleaned);\n  } catch (_) {\n    const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n    if (match) {\n      try {\n        return JSON.parse(match[0]);\n      } catch (_) {}\n    }\n  }\n  return null;\n}\nconst lead = $('Extract Scrape Signals').first().json;\nconst text = extractGeminiText($input.first().json);\nlet analysis = parseStrictJson(text);\nif (!analysis || typeof analysis !== 'object') {\n  analysis = {\n    summary: text || 'Analysis parse fallback',\n    ai_readiness_score: 50,\n    operational_complexity_score: 50,\n    founder_fit_score: 50,\n    relationship_angle: 'shared interest in operational intelligence',\n    likely_pain_points: [],\n  };\n}\nreturn { json: { ...lead, ...analysis, status: 'analyzed', updated_at: new Date().toISOString() } };"
-      }
-    },
-    {
-      "id": "cdf8baf5-aa23-4f34-9042-ea51ccacea4d",
-      "name": "Handle Gemini Analysis Error",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2440,
-        -240
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const lead = $('Extract Scrape Signals').first().json;\nreturn {\n  json: {\n    ...lead,\n    error_log: $json.error?.message || 'Gemini analysis failed',\n    status: 'analysis_failed',\n    ai_readiness_score: 40,\n    operational_complexity_score: 50,\n    founder_fit_score: 45,\n    relationship_angle: 'operational scaling',\n    likely_pain_points: [],\n    summary: 'Fallback scoring after Gemini error',\n    updated_at: new Date().toISOString(),\n  },\n};"
-      }
-    },
-    {
-      "id": "26a079e3-51df-41a6-943b-4b91c50f261a",
-      "name": "ICP Weighted Scoring",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2680,
-        -420
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const l = $input.first().json;\nconst s = l.signals || {};\nconst norm = (v, max = 10) => Math.min(100, (Number(v) || 0) / max * 100);\nconst score =\n  norm(s.ai_mentions) * 0.18 +\n  norm(s.automation_mentions) * 0.15 +\n  norm(s.hiring_mentions) * 0.12 +\n  norm(s.support_mentions) * 0.1 +\n  (Number(l.ai_readiness_score) || 50) * 0.15 +\n  (Number(l.operational_complexity_score) || 50) * 0.1 +\n  (Number(l.founder_fit_score) || 50) * 0.2;\nconst icp_score = Math.round(Math.min(100, Math.max(0, score)));\nlet priority = 'low';\nif (icp_score >= 75) priority = 'high';\nelse if (icp_score >= 50) priority = 'medium';\nconst status = priority === 'low' ? 'archived' : 'scored';\nreturn {\n  json: {\n    ...l,\n    icp_score,\n    priority,\n    status,\n    updated_at: new Date().toISOString(),\n  },\n};"
-      }
-    },
-    {
-      "id": "5a6e45f2-abc4-4b69-b5ad-b0d965b6edda",
-      "name": "Route ICP Priority",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.2,
-      "position": [
-        2920,
-        -420
-      ],
-      "parameters": {
-        "mode": "rules",
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict"
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.priority }}",
-                    "rightValue": "high",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "high"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict"
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.priority }}",
-                    "rightValue": "medium",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "medium"
-            }
-          ]
-        },
-        "options": {
-          "fallbackOutput": "extra",
-          "fallbackOutputName": "low_archive"
-        }
-      }
-    },
-    {
-      "id": "498cd8e9-7153-4986-b33d-190276dd9c38",
-      "name": "Serper Find LinkedIn",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        3160,
-        -560
+        720,
+        0
       ],
       "parameters": {
         "method": "POST",
@@ -975,208 +373,233 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ q: $json.company_name + \" site:linkedin.com/company OR site:linkedin.com/in founder CEO\", num: 8 }) }}",
+        "jsonBody": "={{ JSON.stringify({ q: $json.founder_search_query, num: 5, page: 1, gl: \"us\", hl: \"en\" }) }}",
         "options": {
           "retry": {
             "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
+            "maxTries": 1,
+            "waitBetween": 1000
           },
-          "timeout": 120000
+          "timeout": 30000
         }
       },
-      "onError": "continueErrorOutput"
+      "onError": "continueRegularOutput"
     },
     {
-      "id": "348362b6-3baa-40a8-8d5b-1178bffb801b",
-      "name": "Parse LinkedIn Serper",
+      "id": "5c39163d-9a4e-40ca-bbc5-ac23651ae301",
+      "name": "Parse Founder Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3400,
-        -560
+        960,
+        0
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const lead = $('ICP Weighted Scoring').first().json;\nconst organic = $input.first().json.organic || [];\nlet linkedin_company_url = lead.linkedin_company_url || '';\nlet founder_linkedin_url = lead.founder_linkedin_url || '';\nlet founder_name = lead.founder_name || '';\nfor (const r of organic) {\n  const link = (r.link || '').split('?')[0];\n  if (!linkedin_company_url && link.includes('linkedin.com/company')) linkedin_company_url = link;\n  if (!founder_linkedin_url && link.includes('linkedin.com/in/')) {\n    founder_linkedin_url = link;\n    founder_name = founder_name || (r.title || '').split('|')[0].split('-')[0].trim();\n  }\n}\nreturn {\n  json: {\n    ...lead,\n    linkedin_company_url,\n    founder_linkedin_url,\n    founder_name,\n    status: lead.status === 'archived' ? 'archived' : 'linkedin_resolved',\n    updated_at: new Date().toISOString(),\n  },\n};"
+        "jsCode": "const serper = $input.item.json || {};\nconst lead = $('Prepare Founder Search').item.json;\nif (!lead?.lead_id) throw new Error('Parse Founder: missing lead_id from Prepare Founder Search');\n\nlet founder_name = String(lead.founder_name || '').trim();\nlet founder_linkedin_url = String(lead.founder_linkedin_url || '').split('?')[0];\nlet founder_title = String(lead.founder_title || '').trim();\nconst organic = Array.isArray(serper.organic) ? serper.organic : [];\n\nfor (const r of organic) {\n  const link = String(r.link || '').split('?')[0];\n  if (!link.includes('linkedin.com/in/')) continue;\n  if (!founder_linkedin_url) {\n    founder_linkedin_url = link;\n    const titleRaw = String(r.title || '');\n    founder_name = founder_name || titleRaw.split('|')[0].split('-')[0].trim();\n    const titleMatch = titleRaw.match(/\\b(CEO|CTO|COO|Founder|Co-Founder|President)\\b[^|]*/i);\n    if (titleMatch) founder_title = founder_title || titleMatch[0].trim();\n  }\n}\n\nreturn {\n  json: {\n    ...lead,\n    founder_name,\n    founder_linkedin_url,\n    founder_title,\n    founder_lookup_ok: Boolean(founder_linkedin_url),\n    status: 'founder_resolved',\n    _mergeBy: 'lead_id',\n  },\n};"
       }
     },
     {
-      "id": "03abc1b9-19c9-4b05-bf25-c90532136446",
-      "name": "Wait Gemini LinkedIn",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
+      "id": "9235293a-cdd6-4896-a7e8-cc1fbdc07ca3",
+      "name": "Prepare Scrape Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        3640,
-        -560
+        1200,
+        0
       ],
       "parameters": {
-        "resume": "timeInterval",
-        "amount": "={{ $(\"Workflow Config\").first().json.geminiWaitMs || 1200 }}",
-        "unit": "milliseconds"
+        "mode": "runOnceForEachItem",
+        "jsCode": "const lead = $json;\nif (!lead.lead_id) throw new Error('lead_id required before scrape');\nreturn { json: { ...lead, _mergeBy: 'lead_id' } };"
       }
     },
     {
-      "id": "68d93388-eff4-457f-b45e-b645f2041c55",
-      "name": "Gemini Founder Resolve",
+      "id": "3ee3577f-1080-41b1-a456-0c935d4519a7",
+      "name": "Firecrawl Homepage",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3880,
-        -560
+        1440,
+        0
       ],
       "parameters": {
         "method": "POST",
-        "url": "={{ \"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\" + $env.GEMINI_API_KEY }}",
+        "url": "https://api.firecrawl.dev/v1/scrape",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Content-Type",
               "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  contents: [{\n    parts: [{\n      text: \"Identify the best founder or decision-maker for warm LinkedIn networking (not sales). Return STRICT JSON only: founder_name, founder_title, founder_linkedin_url (full URL or empty), linkedin_company_url (full URL or empty), confidence (0-1), notes. Prefer CEO/founder/COO. No markdown.\\n\\nCompany: \" + $json.company_name + \"\\nWebsite: \" + $json.website + \"\\nKnown company LinkedIn: \" + ($json.linkedin_company_url || \"\") + \"\\nKnown founder URL: \" + ($json.founder_linkedin_url || \"\") + \"\\nSummary: \" + ($json.summary || \"\")\n    }]\n  }],\n  generationConfig: { temperature: 0.25, responseMimeType: \"application/json\" }\n}) }}",
-        "options": {
-          "retry": {
-            "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
-          },
-          "timeout": 120000
-        }
-      },
-      "onError": "continueErrorOutput"
-    },
-    {
-      "id": "408f8c01-a94f-4a3e-82a2-49d89b7e3c58",
-      "name": "Parse Founder JSON",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4120,
-        -560
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "function extractGeminiText(payload) {\n  if (!payload || typeof payload !== 'object') return '';\n  const parts = payload.candidates?.[0]?.content?.parts;\n  if (!Array.isArray(parts)) return '';\n  return parts.map((p) => p?.text || '').join('').trim();\n}\nfunction parseStrictJson(text) {\n  if (!text) return null;\n  let cleaned = String(text).trim();\n  if (cleaned.startsWith('```')) {\n    cleaned = cleaned.replace(/^\\`\\`\\`(?:json)?\\s*/i, '').replace(/\\`\\`\\`\\s*$/, '').trim();\n  }\n  try {\n    return JSON.parse(cleaned);\n  } catch (_) {\n    const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n    if (match) {\n      try {\n        return JSON.parse(match[0]);\n      } catch (_) {}\n    }\n  }\n  return null;\n}\nconst lead = $('Parse LinkedIn Serper').first().json;\nconst text = extractGeminiText($input.first().json);\nlet f = parseStrictJson(text);\nif (!f || typeof f !== 'object') f = {};\nconst founder_linkedin_url = f.founder_linkedin_url || lead.founder_linkedin_url || '';\nconst linkedin_company_url = f.linkedin_company_url || lead.linkedin_company_url || '';\nif (!founder_linkedin_url && lead.priority !== 'low') {\n  return { json: { ...lead, ...f, linkedin_company_url, status: 'needs_manual_founder', notes: (lead.notes || '') + ' | Founder URL not found' } };\n}\nreturn {\n  json: {\n    ...lead,\n    founder_name: f.founder_name || lead.founder_name || '',\n    founder_linkedin_url,\n    linkedin_company_url,\n    notes: [lead.notes, f.notes].filter(Boolean).join(' | '),\n    status: lead.status === 'archived' ? 'archived' : 'queued',\n    updated_at: new Date().toISOString(),\n  },\n};"
-      }
-    },
-    {
-      "id": "e79b3b5e-97b7-465f-af6e-aa800d22ae93",
-      "name": "Gemini LinkedIn Copy",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        4360,
-        -560
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "={{ \"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\" + $env.GEMINI_API_KEY }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  contents: [{\n    parts: [{\n      text: \"Write warm, founder-level LinkedIn relationship copy for CognixAI Labs. NO sales pitch. Return STRICT JSON only: connection_note (max 280 chars, optional note for connection request), relationship_message (max 500 chars, send 2 days after connect, curious not pitchy), profile_view_context (1 sentence why view profile), notes. No markdown.\\n\\nContext: \" + JSON.stringify({\n        company_name: $json.company_name,\n        founder_name: $json.founder_name,\n        relationship_angle: $json.relationship_angle,\n        icp_score: $json.icp_score,\n        summary: $json.summary,\n        likely_pain_points: $json.likely_pain_points\n      })\n    }]\n  }],\n  generationConfig: { temperature: 0.55, responseMimeType: \"application/json\" }\n}) }}",
-        "options": {
-          "retry": {
-            "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
-          },
-          "timeout": 120000
-        }
-      },
-      "onError": "continueErrorOutput"
-    },
-    {
-      "id": "b099f8ef-fa32-4c5d-9cb7-14ab72c24f7f",
-      "name": "Parse LinkedIn Copy JSON",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4600,
-        -560
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "function extractGeminiText(payload) {\n  if (!payload || typeof payload !== 'object') return '';\n  const parts = payload.candidates?.[0]?.content?.parts;\n  if (!Array.isArray(parts)) return '';\n  return parts.map((p) => p?.text || '').join('').trim();\n}\nfunction parseStrictJson(text) {\n  if (!text) return null;\n  let cleaned = String(text).trim();\n  if (cleaned.startsWith('```')) {\n    cleaned = cleaned.replace(/^\\`\\`\\`(?:json)?\\s*/i, '').replace(/\\`\\`\\`\\s*$/, '').trim();\n  }\n  try {\n    return JSON.parse(cleaned);\n  } catch (_) {\n    const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n    if (match) {\n      try {\n        return JSON.parse(match[0]);\n      } catch (_) {}\n    }\n  }\n  return null;\n}\nconst lead = $('Parse Founder JSON').first().json;\nif (lead.status === 'archived' || lead.status === 'needs_manual_founder') {\n  return { json: lead };\n}\nconst text = extractGeminiText($input.first().json);\nlet copy = parseStrictJson(text);\nif (!copy || typeof copy !== 'object') {\n  copy = {\n    connection_note: 'Hi ' + (lead.founder_name || 'there') + ' — enjoyed learning about ' + (lead.company_name || 'your work') + '. Would love to connect.',\n    relationship_message: 'Thanks for connecting. Curious how you are thinking about operational workflows as you scale — always learning from founders building in this space.',\n    profile_view_context: 'Researching founders building AI-forward ops teams.',\n    notes: 'Gemini copy fallback',\n  };\n}\nreturn {\n  json: {\n    ...lead,\n    ...copy,\n    status: 'queued',\n    updated_at: new Date().toISOString(),\n  },\n};"
-      }
-    },
-    {
-      "id": "2f750020-dec4-4d51-86b7-5781a2a657ad",
-      "name": "Archive Low ICP",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        3160,
-        -240
-      ],
-      "parameters": {
-        "mode": "manual",
-        "assignments": {
-          "assignments": [
-            {
-              "id": "a6600a7d-601e-4859-a450-6e6283537489",
-              "name": "status",
-              "value": "archived",
-              "type": "string"
             },
             {
-              "id": "5fa23b69-be86-433e-b0f0-f7cb10010a69",
-              "name": "priority",
-              "value": "low",
-              "type": "string"
+              "name": "Authorization",
+              "value": "={{ \"Bearer \" + $env.FIRECRAWL_API_KEY }}"
             }
           ]
         },
-        "includeOtherFields": true
-      }
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ url: $json.website, formats: [\"markdown\"], onlyMainContent: true, timeout: 30000 }) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 1,
+            "waitBetween": 1000
+          },
+          "timeout": 30000
+        }
+      },
+      "onError": "continueRegularOutput"
     },
     {
-      "id": "5e48d9d2-30bc-429d-bb87-da142dc8c1c0",
-      "name": "Merge Scored Paths",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
+      "id": "13df360b-befd-4291-a4dc-07a015590b17",
+      "name": "Merge Scrape By Lead Id",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        4840,
-        -420
+        1680,
+        0
       ],
       "parameters": {
-        "mode": "append",
-        "numberInputs": 2
+        "mode": "runOnceForEachItem",
+        "jsCode": "const fc = $input.item.json || {};\nconst lead = $('Prepare Scrape Context').item.json;\nif (!lead?.lead_id) throw new Error('Merge Scrape: lead_id missing');\nconst maxChars = Number(lead.maxScrapeChars) || 1500;\nconst md = fc?.data?.markdown || fc?.markdown || '';\nconst homepage = String(md).slice(0, maxChars);\nconst scrape_ok = Boolean(md && !fc?.error);\nreturn {\n  json: {\n    ...lead,\n    scraped_homepage: homepage,\n    scrape_ok,\n    scrape_error: fc?.error ? String(fc.error) : (scrape_ok ? '' : 'empty_homepage'),\n    status: scrape_ok ? 'scraped' : 'scrape_failed',\n    _mergeBy: 'lead_id',\n  },\n};"
       }
     },
     {
-      "id": "5ac2d741-b706-40e1-8e06-2eb84bea6462",
-      "name": "Sheets Append Lead",
+      "id": "9f681b40-5963-4ae4-a1c6-6713e04bee69",
+      "name": "Prepare Gemini Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const lead = $json;\nif (!lead.lead_id) throw new Error('lead_id required before Gemini');\nreturn { json: { ...lead, _mergeBy: 'lead_id' } };"
+      }
+    },
+    {
+      "id": "2657b0f6-81e9-4ec8-99f7-114500b31203",
+      "name": "Gemini Unified Intelligence",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ \"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\" + $env.GEMINI_API_KEY }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  contents: [{\n    parts: [{\n      text: \"You are helping CognixAI Labs build authentic founder relationships on LinkedIn.\\n\\nYou are NOT writing sales outreach.\\n\\nGenerate thoughtful, observant, founder-to-founder networking messages.\\n\\nReturn STRICT JSON only with:\\n{\\n  \\\"icp_score\\\": number,\\n  \\\"priority\\\": \\\"high|medium|low\\\",\\n  \\\"summary\\\": \\\"\\\",\\n  \\\"relationship_angle\\\": \\\"\\\",\\n  \\\"likely_pain_points\\\": [],\\n  \\\"connection_note\\\": \\\"\\\",\\n  \\\"relationship_message\\\": \\\"\\\"\\n}\\n\\nRules:\\n- connection_note must feel human and natural\\n- never sound salesy\\n- never pitch services directly\\n- sound curious and intelligent\\n- mention something specific from the company context\\n- tone should feel like operator-to-operator networking\\n- connection_note max 260 chars\\n- relationship_message max 450 chars\\n- Do NOT invent founder names or LinkedIn URLs — use only provided founder fields\\n- Do NOT discover founders or guess company facts not in context\\n- likely_pain_points: array of strings (max 5)\\n- No markdown. No extra keys.\" +\n        \"\\n\\nCompany:\\n\" + ($json.company_name || \"\") +\n        \"\\n\\nFounder:\\n\" + ($json.founder_name || \"\") +\n        \"\\n\" + ($json.founder_title || \"\") +\n        \"\\n\\nWebsite:\\n\" + ($json.website || \"\") +\n        \"\\n\\nLinkedIn:\\n\" + ($json.linkedin_company_url || \"\") +\n        \"\\n\\nHomepage:\\n\" + ($json.scraped_homepage || \"\").slice(0, 1500) +\n        \"\\n\\nDescription:\\n\" + ($json.description || \"\")\n    }]\n  }],\n  generationConfig: { temperature: 0.4, responseMimeType: \"application/json\", maxOutputTokens: 1024 }\n}) }}",
+        "options": {
+          "retry": {
+            "enabled": true,
+            "maxTries": 1,
+            "waitBetween": 1000
+          },
+          "timeout": 30000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "e265b2e7-8007-476e-a735-ae2ede9972c1",
+      "name": "Parse Gemini Unified",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "function extractGeminiText(payload) {\n  if (!payload || typeof payload !== 'object') return '';\n  const parts = payload.candidates?.[0]?.content?.parts;\n  if (!Array.isArray(parts)) return '';\n  return parts.map((p) => p?.text || '').join('').trim();\n}\nfunction parseStrictJson(text) {\n  if (!text) return null;\n  let cleaned = String(text).trim();\n  if (cleaned.startsWith('```')) {\n    cleaned = cleaned.replace(/^\\`\\`\\`(?:json)?\\s*/i, '').replace(/\\`\\`\\`\\s*$/, '').trim();\n  }\n  try {\n    return JSON.parse(cleaned);\n  } catch (_) {\n    const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n    if (match) {\n      try {\n        return JSON.parse(match[0]);\n      } catch (_) {}\n    }\n  }\n  return null;\n}\nconst geminiRaw = $input.item.json || {};\nconst lead = $('Prepare Gemini Context').item.json;\nif (!lead?.lead_id) throw new Error('Parse Gemini: lead_id missing');\n\nconst text = extractGeminiText(geminiRaw.candidates ? geminiRaw : {});\nlet ai = parseStrictJson(text);\n\nconst fallback = {\n  icp_score: 45,\n  priority: 'low',\n  summary: 'Fallback scoring — Gemini parse or API issue',\n  relationship_angle: 'operational intelligence and workflow scaling',\n  likely_pain_points: [],\n  connection_note: 'Hi — appreciated learning about your team. Would love to connect.',\n  relationship_message: 'Thanks for connecting. Curious how you think about ops workflows as you scale.',\n};\n\nif (!ai || typeof ai !== 'object') ai = { ...fallback, _parseMode: 'raw_text', _raw: (text || '').slice(0, 500) };\n\nconst icp_score = Math.min(100, Math.max(0, Number(ai.icp_score) || 45));\nlet priority = String(ai.priority || 'low').toLowerCase();\nif (!['high', 'medium', 'low'].includes(priority)) {\n  priority = icp_score >= 75 ? 'high' : icp_score >= 50 ? 'medium' : 'low';\n}\n\nconst pain = Array.isArray(ai.likely_pain_points)\n  ? ai.likely_pain_points.slice(0, 5)\n  : [];\n\nconst now = new Date().toISOString();\n\nreturn {\n  json: {\n    ...lead,\n    icp_score,\n    priority,\n    summary: String(ai.summary || fallback.summary).slice(0, 600),\n    relationship_angle: String(ai.relationship_angle || fallback.relationship_angle).slice(0, 300),\n    likely_pain_points: pain.join('; '),\n    connection_note: String(ai.connection_note || fallback.connection_note).slice(0, 260),\n    relationship_message: String(ai.relationship_message || fallback.relationship_message).slice(0, 450),\n    status: priority === 'low' ? 'archived' : 'queued',\n    engagement_stage: 'profile_pending',\n    viewed_at: '',\n    connection_requested_at: '',\n    connected_at: '',\n    followup_sent_at: '',\n    replied: false,\n    error_log: geminiRaw?.error ? String(geminiRaw.error.message || geminiRaw.error) : (lead.scrape_error || ''),\n    updated_at: now,\n    _mergeBy: 'lead_id',\n  },\n};"
+      }
+    },
+    {
+      "id": "5bf556a5-100e-4b37-b7b1-357f53e5e7f0",
+      "name": "Prepare Sheet Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const j = $json;\nif (!j.lead_id || !j.company_name) {\n  return { json: { ...j, _skipAppend: true, _trace: 'invalid_row' } };\n}\nreturn { json: j };"
+      }
+    },
+    {
+      "id": "768378ea-9c0e-4f52-80a6-6a760376752a",
+      "name": "IF Valid For Append",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3120,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json._skipAppend }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "leftValue": "={{ $json.lead_id || \"\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "11620698-8081-4291-acc7-df71522af27e",
+      "name": "Sheets Append Leads",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        5080,
-        -420
+        3360,
+        0
       ],
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "={{ $(\"Build Dedup Index\").first().json.spreadsheetId }}",
+          "value": "={{ $json.spreadsheetId }}",
           "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": "={{ $(\"Build Dedup Index\").first().json.sheetName }}",
+          "value": "={{ $json.sheetName }}",
           "mode": "name"
         },
         "columns": {
@@ -1187,22 +610,25 @@
             "website": "={{ $json.website }}",
             "linkedin_company_url": "={{ $json.linkedin_company_url }}",
             "founder_name": "={{ $json.founder_name }}",
+            "founder_title": "={{ $json.founder_title }}",
             "founder_linkedin_url": "={{ $json.founder_linkedin_url }}",
             "icp_score": "={{ $json.icp_score }}",
             "priority": "={{ $json.priority }}",
+            "summary": "={{ $json.summary }}",
+            "relationship_angle": "={{ $json.relationship_angle }}",
+            "connection_note": "={{ $json.connection_note }}",
+            "relationship_message": "={{ $json.relationship_message }}",
             "status": "={{ $json.status }}",
+            "engagement_stage": "={{ $json.engagement_stage || \"profile_pending\" }}",
             "viewed_at": "={{ $json.viewed_at || \"\" }}",
             "connection_requested_at": "={{ $json.connection_requested_at || \"\" }}",
-            "relationship_message_sent_at": "={{ $json.relationship_message_sent_at || \"\" }}",
+            "connected_at": "={{ $json.connected_at || \"\" }}",
+            "followup_sent_at": "={{ $json.followup_sent_at || \"\" }}",
             "replied": "={{ $json.replied || false }}",
-            "notes": "={{ $json.notes || \"\" }}",
-            "connection_note": "={{ $json.connection_note || \"\" }}",
-            "relationship_message": "={{ $json.relationship_message || \"\" }}",
-            "profile_view_context": "={{ $json.profile_view_context || \"\" }}",
-            "summary": "={{ $json.summary || \"\" }}",
-            "error_log": "={{ $json.error_log || \"\" }}",
             "created_at": "={{ $json.created_at }}",
-            "updated_at": "={{ $json.updated_at }}"
+            "updated_at": "={{ $json.updated_at }}",
+            "error_log": "={{ $json.error_log || \"\" }}",
+            "source_query": "={{ $json.source_query || \"\" }}"
           }
         },
         "options": {
@@ -1211,685 +637,62 @@
       }
     },
     {
-      "id": "5ca45873-58df-4782-9943-1a8f41962641",
-      "name": "Loop Scrape Batches",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        5320,
-        -420
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "return [{ json: { batch_continue: true } }];"
-      }
-    },
-    {
-      "id": "84dbcdda-7524-4366-ac90-ee3acb91617e",
-      "name": "Loop Discovery Batches",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        0,
-        -580
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "return [{ json: { loop: true } }];"
-      }
-    },
-    {
-      "id": "e1772bbd-98ff-460e-b165-68f2fadefb83",
-      "name": "Handle Serper Error",
+      "id": "cf3ae98c-fe7e-4981-8318-d3cfb0046e48",
+      "name": "Run Complete - Success",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1240,
-        -200
+        3600,
+        0
       ],
       "parameters": {
         "mode": "manual",
+        "includeOtherFields": true,
         "assignments": {
           "assignments": [
             {
-              "id": "bc6df60f-29eb-4c6f-8fe4-b18e14ec0065",
-              "name": "error_log",
-              "value": "={{ $json.error?.message || \"Serper request failed\" }}",
-              "type": "string"
-            },
-            {
-              "id": "348acb94-b41d-4f0b-858d-e17dd33289ea",
-              "name": "status",
-              "value": "discovery_failed",
+              "id": "5c647ee1-cb80-4bb9-b5eb-fd98738f0bd3",
+              "name": "_trace",
+              "value": "={{ \"complete_success \" + $now.toISO() }}",
               "type": "string"
             }
           ]
-        },
-        "includeOtherFields": true
-      }
-    },
-    {
-      "id": "e0ecb222-092c-4011-827f-720cb3b4c575",
-      "name": "Start LinkedIn Engagement Pass",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        5560,
-        -420
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "return [{ json: { ...$('Build Dedup Index').first().json, triggerLinkedIn: true } }];"
-      }
-    },
-    {
-      "id": "e380c65f-476c-4037-a243-d6217652129a",
-      "name": "Read Leads For Engagement",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.5,
-      "position": [
-        -2200,
-        420
-      ],
-      "parameters": {
-        "operation": "read",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $json.spreadsheetId }}",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "={{ $json.sheetName }}",
-          "mode": "name"
-        },
-        "options": {
-          "rangeDefinition": "specifyRange",
-          "range": "A:AZ"
         }
       }
     },
     {
-      "id": "eadbda45-6d3a-432d-a681-7b5006ae27c9",
-      "name": "Compute Daily Limits",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1960,
-        420
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const cfg = $('Detect Run Mode').first().json;\nconst rows = $input.all().map((i) => i.json);\nconst today = new Date().toISOString().slice(0, 10);\nlet viewsToday = 0;\nlet connectionsToday = 0;\nfor (const r of rows) {\n  if (String(r.viewed_at || r['viewed_at'] || '').startsWith(today)) viewsToday++;\n  if (String(r.connection_requested_at || r['connection_requested_at'] || '').startsWith(today)) connectionsToday++;\n}\nreturn [{\n  json: {\n    ...cfg,\n    viewsToday,\n    connectionsToday,\n    viewsRemaining: Math.max(0, (cfg.maxProfileViewsPerDay || 40) - viewsToday),\n    connectionsRemaining: Math.max(0, (cfg.maxConnectionsPerDay || 20) - connectionsToday),\n    allRows: rows,\n  },\n}];"
-      }
-    },
-    {
-      "id": "76849802-533b-4978-abdf-e548dffe559d",
-      "name": "Filter Stage - View Profile",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1720,
-        280
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const cfg = $('Compute Daily Limits').first().json;\nif (cfg.viewsRemaining <= 0) return [];\nconst seen = new Set(cfg.allRows.map((r) => String(r.founder_linkedin_url || '').toLowerCase()).filter(Boolean));\nconst items = (cfg.allRows || []).filter((r) => {\n  const status = String(r.status || '');\n  const url = String(r.founder_linkedin_url || r['founder_linkedin_url'] || '');\n  const viewed = r.viewed_at || r['viewed_at'] || '';\n  const replied = r.replied === true || r.replied === 'TRUE';\n  if (replied || !url.includes('linkedin.com/in')) return false;\n  if (!['queued', 'scored', 'linkedin_resolved'].includes(status)) return false;\n  if (viewed) return false;\n  if (seen.has(url.toLowerCase()) && viewed) return false;\n  return (Number(r.icp_score) || 0) >= 50;\n});\nreturn items.slice(0, cfg.engagementBatchSize || 3).map((json) => ({ json: { ...cfg, ...json, linkedin_action: 'view_profile' } }));"
-      }
-    },
-    {
-      "id": "4331f59a-4d0c-4a86-85dc-5e3a628a6ef4",
-      "name": "Filter Stage - Connection Request",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1720,
-        420
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const cfg = $('Compute Daily Limits').first().json;\nif (cfg.connectionsRemaining <= 0) return [];\nconst waitMs = (cfg.connectionWaitHours || 2) * 3600000;\nconst now = Date.now();\nconst items = (cfg.allRows || []).filter((r) => {\n  const status = String(r.status || '');\n  const viewedAt = Date.parse(r.viewed_at || r['viewed_at'] || 0);\n  const connAt = r.connection_requested_at || r['connection_requested_at'] || '';\n  const replied = r.replied === true || r.replied === 'TRUE';\n  if (replied || connAt) return false;\n  if (status !== 'viewed') return false;\n  if (!viewedAt || now - viewedAt < waitMs) return false;\n  return String(r.founder_linkedin_url || '').includes('linkedin.com/in');\n});\nreturn items.slice(0, cfg.engagementBatchSize || 3).map((json) => ({ json: { ...cfg, ...json, linkedin_action: 'connection_request' } }));"
-      }
-    },
-    {
-      "id": "8e0df005-c08e-44b2-97d2-781d719100f9",
-      "name": "Filter Stage - Relationship Message",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1720,
-        560
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const cfg = $('Compute Daily Limits').first().json;\nconst waitMs = (cfg.messageWaitDays || 2) * 86400000;\nconst now = Date.now();\nconst items = (cfg.allRows || []).filter((r) => {\n  const status = String(r.status || '');\n  const connAt = Date.parse(r.connection_requested_at || r['connection_requested_at'] || 0);\n  const msgAt = r.relationship_message_sent_at || r['relationship_message_sent_at'] || '';\n  const replied = r.replied === true || r.replied === 'TRUE';\n  if (replied || msgAt) return false;\n  if (status !== 'connection_requested') return false;\n  if (!connAt || now - connAt < waitMs) return false;\n  return String(r.founder_linkedin_url || '').includes('linkedin.com/in');\n});\nreturn items.slice(0, cfg.engagementBatchSize || 3).map((json) => ({ json: { ...cfg, ...json, linkedin_action: 'relationship_message' } }));"
-      }
-    },
-    {
-      "id": "9eaba1de-1388-4328-8fc1-1978165c7f5a",
-      "name": "Merge Engagement Queues",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        -1480,
-        420
-      ],
-      "parameters": {
-        "mode": "append",
-        "numberInputs": 3
-      }
-    },
-    {
-      "id": "5bd23dee-dfd5-4710-9689-b06feb3fe549",
-      "name": "IF Has Engagement Items",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -1240,
-        420
-      ],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $input.all().length }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
-      }
-    },
-    {
-      "id": "ecd8267e-8a74-4f84-b72d-9661797220fb",
-      "name": "Split Engagement Batches",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -1000,
-        420
-      ],
-      "parameters": {
-        "batchSize": 1,
-        "options": {
-          "reset": false
-        }
-      }
-    },
-    {
-      "id": "30a4e08d-d134-41cb-84da-c11154142821",
-      "name": "Random Human Delay",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -760,
-        420
-      ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const minMs = 45000;\nconst maxMs = 120000;\nconst delayMs = Math.floor(minMs + Math.random() * (maxMs - minMs));\nreturn { json: { ...$json, delayMs, jitter_note: 'Randomized delay for LinkedIn safety' } };"
-      }
-    },
-    {
-      "id": "f0de32b8-35b7-4702-b1a3-acae6c323e8e",
-      "name": "Wait Human Pacing",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        -520,
-        420
-      ],
-      "parameters": {
-        "resume": "timeInterval",
-        "amount": "={{ $json.delayMs }}",
-        "unit": "milliseconds"
-      }
-    },
-    {
-      "id": "c2952bdb-a3b4-4def-82b2-82f2e567c06b",
-      "name": "Route LinkedIn Action",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.2,
-      "position": [
-        -280,
-        420
-      ],
-      "parameters": {
-        "mode": "rules",
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict"
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.linkedin_action }}",
-                    "rightValue": "view_profile",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "view_profile"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict"
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.linkedin_action }}",
-                    "rightValue": "connection_request",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "connection_request"
-            }
-          ]
-        },
-        "options": {
-          "fallbackOutput": "extra",
-          "fallbackOutputName": "relationship_message"
-        }
-      }
-    },
-    {
-      "id": "3cbf0250-12e1-4cb1-a733-69aff8ce5b00",
-      "name": "IF Playwright Webhook Enabled",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -40,
-        280
-      ],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $env.COGNIX_PLAYWRIGHT_WEBHOOK_URL }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
-      },
-      "notes": "POST to external Playwright runner when COGNIX_PLAYWRIGHT_WEBHOOK_URL is set."
-    },
-    {
-      "id": "69cbedf0-8b93-46e2-8cc9-1148fa4a543e",
-      "name": "Webhook Playwright View",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        200,
-        200
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.COGNIX_PLAYWRIGHT_WEBHOOK_URL }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  action: \"view_profile\",\n  lead_id: $json.lead_id,\n  founder_name: $json.founder_name,\n  founder_linkedin_url: $json.founder_linkedin_url,\n  linkedin_company_url: $json.linkedin_company_url,\n  connection_note: $json.connection_note || \"\",\n  relationship_message: $json.relationship_message || \"\",\n  profile_view_context: $json.profile_view_context || \"\",\n  company_name: $json.company_name,\n  callback_secret: $env.COGNIX_PLAYWRIGHT_CALLBACK_SECRET || \"\"\n}) }}",
-        "options": {
-          "retry": {
-            "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
-          },
-          "timeout": 120000
-        }
-      },
-      "onError": "continueErrorOutput"
-    },
-    {
-      "id": "742ba161-6c2f-4da8-bda8-a818669549ad",
-      "name": "Sheets Update Viewed",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.5,
-      "position": [
-        440,
-        280
-      ],
-      "parameters": {
-        "operation": "update",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $(\"Compute Daily Limits\").first().json.spreadsheetId }}",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "={{ $(\"Compute Daily Limits\").first().json.sheetName }}",
-          "mode": "name"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "status": "viewed",
-            "viewed_at": "={{ $now.toISO() }}",
-            "notes": "={{ ($json.notes || \"\") + \" | profile viewed\" }}",
-            "updated_at": "={{ $now.toISO() }}"
-          },
-          "matchingColumns": [
-            "lead_id"
-          ]
-        },
-        "options": {
-          "cellFormat": "USER_ENTERED"
-        }
-      }
-    },
-    {
-      "id": "51c32015-c4b0-48d4-ac1f-257e088cf381",
-      "name": "IF Playwright Webhook Connect",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -40,
-        420
-      ],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $env.COGNIX_PLAYWRIGHT_WEBHOOK_URL }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
-      }
-    },
-    {
-      "id": "aa0d20d1-159a-47dd-888f-3f7c5f950a2b",
-      "name": "Webhook Playwright Connect",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        200,
-        340
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.COGNIX_PLAYWRIGHT_WEBHOOK_URL }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  action: \"connection_request\",\n  lead_id: $json.lead_id,\n  founder_name: $json.founder_name,\n  founder_linkedin_url: $json.founder_linkedin_url,\n  linkedin_company_url: $json.linkedin_company_url,\n  connection_note: $json.connection_note || \"\",\n  relationship_message: $json.relationship_message || \"\",\n  profile_view_context: $json.profile_view_context || \"\",\n  company_name: $json.company_name,\n  callback_secret: $env.COGNIX_PLAYWRIGHT_CALLBACK_SECRET || \"\"\n}) }}",
-        "options": {
-          "retry": {
-            "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
-          },
-          "timeout": 120000
-        }
-      },
-      "onError": "continueErrorOutput"
-    },
-    {
-      "id": "d79a2fd1-68f3-4a7a-8b47-ca5b86a1b1bd",
-      "name": "Sheets Update Connection Requested",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.5,
-      "position": [
-        440,
-        420
-      ],
-      "parameters": {
-        "operation": "update",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $(\"Compute Daily Limits\").first().json.spreadsheetId }}",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "={{ $(\"Compute Daily Limits\").first().json.sheetName }}",
-          "mode": "name"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "status": "connection_requested",
-            "connection_requested_at": "={{ $now.toISO() }}",
-            "notes": "={{ ($json.notes || \"\") + \" | connection requested\" }}",
-            "updated_at": "={{ $now.toISO() }}"
-          },
-          "matchingColumns": [
-            "lead_id"
-          ]
-        },
-        "options": {
-          "cellFormat": "USER_ENTERED"
-        }
-      }
-    },
-    {
-      "id": "977851c8-f4ec-4faa-9b4c-a471f0ae4713",
-      "name": "IF Playwright Webhook Message",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -40,
-        560
-      ],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $env.COGNIX_PLAYWRIGHT_WEBHOOK_URL }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
-      }
-    },
-    {
-      "id": "86fb78de-bcce-4e43-9485-45c8c1ac4b25",
-      "name": "Webhook Playwright Message",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        200,
-        480
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.COGNIX_PLAYWRIGHT_WEBHOOK_URL }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  action: \"relationship_message\",\n  lead_id: $json.lead_id,\n  founder_name: $json.founder_name,\n  founder_linkedin_url: $json.founder_linkedin_url,\n  linkedin_company_url: $json.linkedin_company_url,\n  connection_note: $json.connection_note || \"\",\n  relationship_message: $json.relationship_message || \"\",\n  profile_view_context: $json.profile_view_context || \"\",\n  company_name: $json.company_name,\n  callback_secret: $env.COGNIX_PLAYWRIGHT_CALLBACK_SECRET || \"\"\n}) }}",
-        "options": {
-          "retry": {
-            "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
-          },
-          "timeout": 120000
-        }
-      },
-      "onError": "continueErrorOutput"
-    },
-    {
-      "id": "00123887-268f-4195-9946-a480a9ebff27",
-      "name": "Sheets Update Message Sent",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.5,
-      "position": [
-        440,
-        560
-      ],
-      "parameters": {
-        "operation": "update",
-        "documentId": {
-          "__rl": true,
-          "value": "={{ $(\"Compute Daily Limits\").first().json.spreadsheetId }}",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "={{ $(\"Compute Daily Limits\").first().json.sheetName }}",
-          "mode": "name"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "status": "awaiting_reply",
-            "relationship_message_sent_at": "={{ $now.toISO() }}",
-            "notes": "={{ ($json.notes || \"\") + \" | relationship message sent — await manual reply\" }}",
-            "updated_at": "={{ $now.toISO() }}"
-          },
-          "matchingColumns": [
-            "lead_id"
-          ]
-        },
-        "options": {
-          "cellFormat": "USER_ENTERED"
-        }
-      }
-    },
-    {
-      "id": "f5778377-dc26-481b-938a-be86f3014e49",
-      "name": "Merge Engagement Updates",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        920,
-        420
-      ],
-      "parameters": {
-        "mode": "append",
-        "numberInputs": 3
-      }
-    },
-    {
-      "id": "6c6b8ad3-0725-4a42-bec3-6a65a1340a38",
-      "name": "Loop Engagement Batches",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1160,
-        420
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "return [{ json: { loop: true } }];"
-      }
-    },
-    {
-      "id": "b1f0262f-8ada-4d2f-bfaa-72eb35e94031",
+      "id": "e4afb498-499a-438b-b1f6-53147f98b615",
       "name": "Error Trigger",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
       "position": [
-        -3400,
-        720
+        -2400,
+        400
       ],
       "parameters": {}
     },
     {
-      "id": "fe124fc4-80b6-4469-93a2-ce7ce48b980e",
-      "name": "Log Error Payload",
+      "id": "89558c09-5afd-4e77-b4c7-5c353b9a42a3",
+      "name": "Prepare Failed Row",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -3160,
-        720
+        -2160,
+        400
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "return [{\n  json: {\n    workflow: 'CognixAI LinkedIn Relationship Intelligence',\n    timestamp: new Date().toISOString(),\n    execution_id: $execution.id,\n    node: $input.first().json.execution?.lastNodeExecuted || 'unknown',\n    message: $input.first().json.execution?.error?.message || JSON.stringify($input.first().json),\n    stack: String($input.first().json.execution?.error?.stack || '').slice(0, 4000),\n  },\n}];"
+        "jsCode": "const err = $input.first().json;\nreturn [{\n  json: {\n    company_name: err.company_name || err.json?.company_name || 'unknown',\n    website: err.website || err.json?.website || '',\n    error: err.execution?.error?.message || err.message || JSON.stringify(err).slice(0, 500),\n    stage: err.execution?.lastNodeExecuted || 'unknown',\n    timestamp: new Date().toISOString(),\n    run_id: err._runId || '',\n  },\n}];"
       }
     },
     {
-      "id": "8a2e708a-8553-4790-a01f-da604ff17b50",
-      "name": "Sheets Log Error",
+      "id": "ffcac08d-16ed-4f9b-8551-ffbcb1fbfe97",
+      "name": "Sheets Append Failed",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -2920,
-        720
+        -1920,
+        400
       ],
       "parameters": {
         "operation": "append",
@@ -1900,90 +703,38 @@
         },
         "sheetName": {
           "__rl": true,
-          "value": "ErrorLog",
+          "value": "Failed_Leads",
           "mode": "name"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
+            "company_name": "={{ $json.company_name }}",
+            "website": "={{ $json.website }}",
+            "error": "={{ $json.error }}",
+            "stage": "={{ $json.stage }}",
             "timestamp": "={{ $json.timestamp }}",
-            "execution_id": "={{ $json.execution_id }}",
-            "node": "={{ $json.node }}",
-            "message": "={{ $json.message }}",
-            "stack": "={{ $json.stack }}"
+            "run_id": "={{ $json.run_id }}"
           }
-        }
-      }
-    },
-    {
-      "id": "29c59ab1-ffa9-4137-94cc-e16ad7a1eca3",
-      "name": "IF Error Webhook Enabled",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -2680,
-        720
-      ],
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $env.COGNIX_ERROR_WEBHOOK_URL }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
-      }
-    },
-    {
-      "id": "e7a4d4c8-854f-4a33-9fa6-bb1dd7826bd4",
-      "name": "HTTP Error Notify",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -2440,
-        720
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.COGNIX_ERROR_WEBHOOK_URL }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        },
         "options": {
-          "retry": {
-            "enabled": true,
-            "maxTries": 3,
-            "waitBetween": 2500
-          },
-          "timeout": 120000
+          "cellFormat": "USER_ENTERED"
         }
-      },
-      "onError": "continueErrorOutput"
+      }
     },
     {
-      "id": "b58f8e32-00f7-43cc-983b-6fa080de6394",
-      "name": "NOTE Architecture",
+      "id": "c2988dbb-00ac-4108-959f-a949b31a8e7f",
+      "name": "NOTE Lean Architecture",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -3600,
-        -520
+        -2600,
+        -200
       ],
       "parameters": {
-        "content": "## CognixAI LinkedIn Relationship (Gemini)\n\nEnv: GEMINI_API_KEY, SERPER_API_KEY, FIRECRAWL_API_KEY, COGNIX_LEADS_SHEET_ID\nOptional: APIFY_API_TOKEN, COGNIX_PLAYWRIGHT_WEBHOOK_URL, COGNIX_PLAYWRIGHT_CALLBACK_SECRET, COGNIX_ERROR_WEBHOOK_URL\n\nNO EMAIL. Stages: view → wait 2h → connect → wait 2d → message → manual reply\nLimits: 40 views/day, 20 connections/day\nTriggers: Manual | Discovery Mon/Wed/Fri 06:00 | Engagement 09:00 & 14:00",
-        "height": 340,
-        "width": 560
+        "content": "## CognixAI Lean Discovery (v3)\n\nCompany-intent Serper only. Parse filters junk + title noise. Merges: queryKey / lead_id via Code.",
+        "height": 220,
+        "width": 480
       }
     }
   ],
@@ -1992,7 +743,7 @@
       "main": [
         [
           {
-            "node": "Merge Triggers",
+            "node": "Workflow Config",
             "type": "main",
             "index": 0
           }
@@ -2000,28 +751,6 @@
       ]
     },
     "Schedule - Discovery": {
-      "main": [
-        [
-          {
-            "node": "Merge Triggers",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Schedule - LinkedIn Engagement": {
-      "main": [
-        [
-          {
-            "node": "Merge Triggers",
-            "type": "main",
-            "index": 2
-          }
-        ]
-      ]
-    },
-    "Merge Triggers": {
       "main": [
         [
           {
@@ -2036,40 +765,15 @@
       "main": [
         [
           {
-            "node": "Detect Run Mode",
+            "node": "Validate Config",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Detect Run Mode": {
+    "Validate Config": {
       "main": [
-        [
-          {
-            "node": "Route Run Mode",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Route Run Mode": {
-      "main": [
-        [
-          {
-            "node": "Read Leads For Engagement",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Read Existing Leads",
-            "type": "main",
-            "index": 0
-          }
-        ],
         [
           {
             "node": "Read Existing Leads",
@@ -2094,25 +798,14 @@
       "main": [
         [
           {
-            "node": "Build Discovery Queries",
+            "node": "Build Serper Queries",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Build Discovery Queries": {
-      "main": [
-        [
-          {
-            "node": "Split Discovery Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Split Discovery Batches": {
+    "Build Serper Queries": {
       "main": [
         [
           {
@@ -2127,65 +820,29 @@
       "main": [
         [
           {
-            "node": "Wait Serper Rate Limit",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Serper Error",
+            "node": "Merge Serper By Query Key",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Wait Serper Rate Limit": {
+    "Merge Serper By Query Key": {
       "main": [
         [
           {
-            "node": "Parse Serper Results",
+            "node": "Parse Serper Companies",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse Serper Results": {
+    "Parse Serper Companies": {
       "main": [
-        [
-          {
-            "node": "IF More Serper Pages",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF More Serper Pages": {
-      "main": [
-        [
-          {
-            "node": "Increment Serper Page",
-            "type": "main",
-            "index": 0
-          }
-        ],
         [
           {
             "node": "Dedupe Companies",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Increment Serper Page": {
-      "main": [
-        [
-          {
-            "node": "Serper Search",
             "type": "main",
             "index": 0
           }
@@ -2196,124 +853,76 @@
       "main": [
         [
           {
-            "node": "IF Has New Companies",
+            "node": "Limit Leads Per Run",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF Has New Companies": {
+    "Limit Leads Per Run": {
       "main": [
         [
           {
-            "node": "IF Apify Enabled",
+            "node": "IF Has Leads To Process",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Leads To Process": {
+      "main": [
+        [
+          {
+            "node": "Prepare Founder Search",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Loop Discovery Batches",
+            "node": "Run Complete - Nothing New",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF Apify Enabled": {
+    "Prepare Founder Search": {
       "main": [
         [
           {
-            "node": "Apify Optional Enrich",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Skip Apify Pass-through",
+            "node": "Serper Founder Lookup",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Apify Optional Enrich": {
+    "Serper Founder Lookup": {
       "main": [
         [
           {
-            "node": "Merge Apify Enrichment",
+            "node": "Parse Founder Result",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Skip Apify Pass-through": {
+    "Parse Founder Result": {
       "main": [
         [
           {
-            "node": "Merge Apify Skip",
+            "node": "Prepare Scrape Context",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Merge Apify Enrichment": {
-      "main": [
-        [
-          {
-            "node": "Merge Enrich Paths",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Apify Skip": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Merge Enrich Paths",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Enrich Paths": {
-      "main": [
-        [
-          {
-            "node": "Split Scrape Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Split Scrape Batches": {
-      "main": [
-        [
-          {
-            "node": "Attach Lead Context",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Start LinkedIn Engagement Pass",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Attach Lead Context": {
+    "Prepare Scrape Context": {
       "main": [
         [
           {
@@ -2328,593 +937,84 @@
       "main": [
         [
           {
-            "node": "Wait Firecrawl Rate Limit",
+            "node": "Merge Scrape By Lead Id",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Wait Firecrawl Rate Limit": {
+    "Merge Scrape By Lead Id": {
       "main": [
         [
           {
-            "node": "Firecrawl About",
+            "node": "Prepare Gemini Context",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Firecrawl About": {
+    "Prepare Gemini Context": {
       "main": [
         [
           {
-            "node": "Extract Scrape Signals",
+            "node": "Gemini Unified Intelligence",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Extract Scrape Signals": {
+    "Gemini Unified Intelligence": {
       "main": [
         [
           {
-            "node": "Wait Gemini Rate Limit",
+            "node": "Parse Gemini Unified",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Wait Gemini Rate Limit": {
+    "Parse Gemini Unified": {
       "main": [
         [
           {
-            "node": "Gemini Company Analysis",
+            "node": "Prepare Sheet Rows",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Gemini Company Analysis": {
+    "Prepare Sheet Rows": {
       "main": [
         [
           {
-            "node": "IF Gemini Analysis OK",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Gemini Analysis Error",
+            "node": "IF Valid For Append",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF Gemini Analysis OK": {
+    "IF Valid For Append": {
       "main": [
         [
           {
-            "node": "Parse AI Analysis JSON",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Handle Gemini Analysis Error",
+            "node": "Sheets Append Leads",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse AI Analysis JSON": {
+    "Sheets Append Leads": {
       "main": [
         [
           {
-            "node": "ICP Weighted Scoring",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Gemini Analysis Error": {
-      "main": [
-        [
-          {
-            "node": "ICP Weighted Scoring",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "ICP Weighted Scoring": {
-      "main": [
-        [
-          {
-            "node": "Route ICP Priority",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Route ICP Priority": {
-      "main": [
-        [
-          {
-            "node": "Serper Find LinkedIn",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Serper Find LinkedIn",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Archive Low ICP",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Serper Find LinkedIn": {
-      "main": [
-        [
-          {
-            "node": "Parse LinkedIn Serper",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse LinkedIn Serper": {
-      "main": [
-        [
-          {
-            "node": "Wait Gemini LinkedIn",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait Gemini LinkedIn": {
-      "main": [
-        [
-          {
-            "node": "Gemini Founder Resolve",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Gemini Founder Resolve": {
-      "main": [
-        [
-          {
-            "node": "Parse Founder JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse Founder JSON": {
-      "main": [
-        [
-          {
-            "node": "Gemini LinkedIn Copy",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Gemini LinkedIn Copy": {
-      "main": [
-        [
-          {
-            "node": "Parse LinkedIn Copy JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse LinkedIn Copy JSON": {
-      "main": [
-        [
-          {
-            "node": "Merge Scored Paths",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Archive Low ICP": {
-      "main": [
-        [
-          {
-            "node": "Merge Scored Paths",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Scored Paths": {
-      "main": [
-        [
-          {
-            "node": "Sheets Append Lead",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Sheets Append Lead": {
-      "main": [
-        [
-          {
-            "node": "Loop Scrape Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Scrape Batches": {
-      "main": [
-        [
-          {
-            "node": "Split Scrape Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Start LinkedIn Engagement Pass": {
-      "main": [
-        [
-          {
-            "node": "Read Leads For Engagement",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Handle Serper Error": {
-      "main": [
-        [
-          {
-            "node": "Loop Discovery Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Discovery Batches": {
-      "main": [
-        [
-          {
-            "node": "Split Discovery Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read Leads For Engagement": {
-      "main": [
-        [
-          {
-            "node": "Compute Daily Limits",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Compute Daily Limits": {
-      "main": [
-        [
-          {
-            "node": "Filter Stage - View Profile",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Filter Stage - Connection Request",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Filter Stage - Relationship Message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter Stage - View Profile": {
-      "main": [
-        [
-          {
-            "node": "Merge Engagement Queues",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter Stage - Connection Request": {
-      "main": [
-        [
-          {
-            "node": "Merge Engagement Queues",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Filter Stage - Relationship Message": {
-      "main": [
-        [
-          {
-            "node": "Merge Engagement Queues",
-            "type": "main",
-            "index": 2
-          }
-        ]
-      ]
-    },
-    "Merge Engagement Queues": {
-      "main": [
-        [
-          {
-            "node": "IF Has Engagement Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF Has Engagement Items": {
-      "main": [
-        [
-          {
-            "node": "Split Engagement Batches",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Loop Engagement Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Split Engagement Batches": {
-      "main": [
-        [
-          {
-            "node": "Random Human Delay",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Random Human Delay": {
-      "main": [
-        [
-          {
-            "node": "Wait Human Pacing",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait Human Pacing": {
-      "main": [
-        [
-          {
-            "node": "Route LinkedIn Action",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Route LinkedIn Action": {
-      "main": [
-        [
-          {
-            "node": "IF Playwright Webhook Enabled",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "IF Playwright Webhook Connect",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "IF Playwright Webhook Message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF Playwright Webhook Enabled": {
-      "main": [
-        [
-          {
-            "node": "Webhook Playwright View",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Loop Engagement Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Webhook Playwright View": {
-      "main": [
-        [
-          {
-            "node": "Sheets Update Viewed",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF Playwright Webhook Connect": {
-      "main": [
-        [
-          {
-            "node": "Webhook Playwright Connect",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Loop Engagement Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Webhook Playwright Connect": {
-      "main": [
-        [
-          {
-            "node": "Sheets Update Connection Requested",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF Playwright Webhook Message": {
-      "main": [
-        [
-          {
-            "node": "Webhook Playwright Message",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Loop Engagement Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Webhook Playwright Message": {
-      "main": [
-        [
-          {
-            "node": "Sheets Update Message Sent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Sheets Update Viewed": {
-      "main": [
-        [
-          {
-            "node": "Merge Engagement Updates",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Sheets Update Connection Requested": {
-      "main": [
-        [
-          {
-            "node": "Merge Engagement Updates",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Sheets Update Message Sent": {
-      "main": [
-        [
-          {
-            "node": "Merge Engagement Updates",
-            "type": "main",
-            "index": 2
-          }
-        ]
-      ]
-    },
-    "Merge Engagement Updates": {
-      "main": [
-        [
-          {
-            "node": "Loop Engagement Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Engagement Batches": {
-      "main": [
-        [
-          {
-            "node": "Split Engagement Batches",
+            "node": "Run Complete - Success",
             "type": "main",
             "index": 0
           }
@@ -2925,29 +1025,18 @@
       "main": [
         [
           {
-            "node": "Log Error Payload",
+            "node": "Prepare Failed Row",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Log Error Payload": {
+    "Prepare Failed Row": {
       "main": [
         [
           {
-            "node": "Sheets Log Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Sheets Log Error": {
-      "main": [
-        [
-          {
-            "node": "IF Error Webhook Enabled",
+            "node": "Sheets Append Failed",
             "type": "main",
             "index": 0
           }
@@ -2965,20 +1054,17 @@
   "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": false,
-    "instanceId": "cognix-local-windows-linkedin-gemini"
+    "instanceId": "cognix-lean-discovery-v2"
   },
   "tags": [
     {
       "name": "cognix"
     },
     {
-      "name": "linkedin"
+      "name": "lean"
     },
     {
-      "name": "gemini"
-    },
-    {
-      "name": "relationship"
+      "name": "discovery"
     }
   ]
 }
